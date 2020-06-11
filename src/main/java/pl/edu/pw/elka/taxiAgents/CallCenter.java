@@ -60,6 +60,8 @@ public class CallCenter extends Agent
             mesg.setContentObject(cct);
             mesg.addReceiver(taxi);
             send(mesg);
+        } else {
+            System.out.println("Brak dostępnych taksówek.");
         }
     }
 
@@ -102,15 +104,19 @@ public class CallCenter extends Agent
                             System.out.println("klient query");
                             // TODO: client pyta o taksowke
                             CallTaxi ct=(CallTaxi) mesg;
-                            ProcessingQuery pq=new ProcessingQuery(""+(queriesIdsSource.getAndIncrement()),
-                                    ct,
-                                    new LinkedList<>(taxis),
-                                    msgI.getSender());
-                            activeQueries.put(pq.id, pq);
-                            try {
-                                sendQueryToNextTaxi(pq);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            if (taxis.isEmpty()) {
+                                System.out.println("Nie mamy żadnej taksówki zarejestrowanej.");
+                            } else {
+                                ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
+                                        ct,
+                                        new LinkedList<>(taxis),
+                                        msgI.getSender());
+                                activeQueries.put(pq.id, pq);
+                                try {
+                                    sendQueryToNextTaxi(pq);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                         if (mesg instanceof TaxiToCallCenter) {

@@ -205,7 +205,8 @@ public class Boot {
 		}
 
 		//TODO: tu jest dawna linia polecen trzeba zrobic tworzenie agentow
-		String agents = "taxi1:pl.edu.pw.elka.taxiAgents.TaxiAgent;callCenter:pl.edu.pw.elka.taxiAgents.CallCenter";
+		//String agents = "taxi1:pl.edu.pw.elka.taxiAgents.TaxiAgent;callCenter:pl.edu.pw.elka.taxiAgents.CallCenter";
+		String agents = "callCenter:pl.edu.pw.elka.taxiAgents.CallCenter";
 		props.setProperty(Profile.AGENTS, agents);
 		if (++i < args.length) {
 			if(logger.isLoggable(Logger.WARNING))
