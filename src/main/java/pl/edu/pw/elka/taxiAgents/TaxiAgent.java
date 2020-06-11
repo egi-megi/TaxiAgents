@@ -11,6 +11,7 @@ import jade.lang.acl.*;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import pl.edu.pw.elka.taxiAgents.messages.CallCenterToTaxi;
+import pl.edu.pw.elka.taxiAgents.messages.CallCenterConfirmTaxi;
 import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
 import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
 
@@ -74,6 +75,11 @@ public class TaxiAgent extends Agent {
                                 reply.setContentObject(response);
                                 send(reply);
                             }
+
+                            if (o instanceof CallCenterConfirmTaxi)
+                                {
+                                    System.out.println("Taxi has got confirmation of drive");
+                                }
                         } catch(UnreadableException | IOException e){
                                 e.printStackTrace();
                         }

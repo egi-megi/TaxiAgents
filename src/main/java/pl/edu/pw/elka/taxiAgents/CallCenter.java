@@ -129,6 +129,17 @@ public class CallCenter extends Agent
                                 System.out.println("== Answer" + " <- "
                                         + tcc.getTimeToPickUp() + " from "
                                         + tcc.getTaxiPlace() + msgI.getSender().getName());
+                                ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
+                                System.out.println("Informuję taxi o tym, że bierze przejazd:");
+                                System.out.println(msgI.getSender().getName());
+                                confirmTaxi.addReceiver(msgI.getSender());
+                                try {
+                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
+                                    send(confirmTaxi);
+                                } catch(IOException e) {
+                                    e.printStackTrace();
+                                }
+
                                 ACLMessage register=new ACLMessage(ACLMessage.INFORM);
                                 register.addReceiver(pq.customer);
                                 try {
