@@ -7,10 +7,7 @@ import jade.core.behaviours.*;
 //import jade.domain.FIPAAgentManagement.*;
 
 import jade.lang.acl.*;
-import pl.edu.pw.elka.taxiAgents.messages.CallCenterToTaxi;
-import pl.edu.pw.elka.taxiAgents.messages.CallTaxi;
-import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
-import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
+import pl.edu.pw.elka.taxiAgents.messages.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -126,11 +123,20 @@ public class CallCenter extends Agent
                                 System.out.println("== Answer" + " <- "
                                         + tcc.getTimeToPickUp() + " from "
                                         + tcc.getTaxiPlace() + msgI.getSender().getName());
-                                ACLMessage rmesg=new ACLMessage(ACLMessage.INFORM);
+                                ACLMessage register=new ACLMessage(ACLMessage.INFORM);
+                                register.addReceiver(pq.customer);
+                                try {
+                                    register.setContentObject(new CallCenterToClient(msgI.getSender().getName(), tcc.getTimeToPickUp()));
+                                    send(register);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
+                                /**ACLMessage rmesg=new ACLMessage(ACLMessage.INFORM);
                                 rmesg.setContent(tcc.getTimeToPickUp() + " from "
                                         + tcc.getTaxiPlace() + msgI.getSender().getName());
                                 rmesg.addReceiver(pq.customer);
-                                send(rmesg);
+                                send(rmesg);**/
                             } else {
                                 try {
                                     sendQueryToNextTaxi(activeQueries.get(tcc.getQueryID()));

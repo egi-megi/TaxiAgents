@@ -6,12 +6,17 @@ import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.wrapper.ContainerController;
 import jade.core.Runtime;
 import jade.wrapper.*;
+import pl.edu.pw.elka.taxiAgents.messages.CallCenterToClient;
 import pl.edu.pw.elka.taxiAgents.messages.CallTaxi;
+import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
+import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
 
 import java.io.IOException;
+import java.util.LinkedList;
 
 public class Client extends Agent implements ClientI {
 
@@ -35,14 +40,25 @@ public class Client extends Agent implements ClientI {
             public void action() {
                 // Send messages to "a1" and "a2"
 
-                ACLMessage msgI= receive();
-                if (msgI!=null) {
+                ACLMessage msgI = receive();
+                if (msgI != null) {
+                    try {
+                        Object mesg = msgI.getContentObject();
+                        if (mesg instanceof CallCenterToClient) {
+                            CallCenterToClient ct = (CallCenterToClient) mesg;
+                            System.out.println("Przyjeżdża po mnie taksówka: " + ct.getTaxiName() + " za " + ct.getTimeToPickUp() + " min.");
+                        }
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
+                    }
+                    /**if (msgI!=null) {
 
-                        System.out.println("== Answer to Client" + " <- "
-                                + msgI.getContent() + " from "
-                                + msgI.getSender().getName());
+                     System.out.println("== Answer to Client" + " <- "
+                     + msgI.getContent() + " from "
+                     + msgI.getSender().getName());
+                     }
+                     block();*/
                 }
-                block();
             }
         });
 
