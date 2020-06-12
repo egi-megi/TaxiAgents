@@ -20,7 +20,7 @@ public class CallCenter extends Agent
         String id;
         CallTaxi query;
         Queue<AID> taxisToCheck;
-        Queue<ACLMessage> acceptedMessages;
+        Queue<Object> acceptedMessages = new LinkedList<Object>();
         AID customer;
         long waitingStartTime;
 
@@ -32,12 +32,13 @@ public class CallCenter extends Agent
             this.waitingStartTime = System.currentTimeMillis();
         }
     }
+    static long maxWaitingTime = 5000L;
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
     Map<String,ProcessingQuery> activeQueries=new HashMap<>();
 
-    Queue<ProcessingQuery> QueriesToProcess;
+    Queue<ProcessingQuery> QueriesToProcess = new LinkedList<>();
 
     Set<AID> taxis=new HashSet<>();
 
@@ -77,11 +78,9 @@ public class CallCenter extends Agent
             public void action() {
 
                 //this counter is used when we send client info to taxis
-                long waitingStartTime;
                 ACLMessage msgI = receive();
                 do {
-                    System.out.println("next message to call center");
-
+                    //System.out.println("next message to call center");
                     if (msgI != null) {
                         try {
                             Object mesg = msgI.getContentObject();
@@ -101,18 +100,20 @@ public class CallCenter extends Agent
                                     try {
                                         //We sends info about query to all taxis;
                                         sendQueryToAllTaxis(pq);
+                                        System.out.println("We've just send info to all taxis ");
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
                                 }
                             }
                             if (mesg instanceof TaxiToCallCenter) {
-                                //System.out.println("Taxi to callcenter");
+                                System.out.println("Taxi to callcenter");
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
                                 System.out.println("== Answer" + " <- " + tcc.isIfAccepts());
                                 if (tcc.isIfAccepts()) {
                                     ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
-                                    pq.acceptedMessages.add(msgI);
+                                    System.out.println("Smtg after this is broken");
+                                    pq.acceptedMessages.add(mesg);
                                     //activeQueries.remove(tcc.getQueryID());
                                     System.out.println("== Answer" + " <- "
                                             + tcc.getTimeToPickUp() + " from "
@@ -169,12 +170,17 @@ public class CallCenter extends Agent
                 } while ((msgI = receive()) != null);
 
                 if (!QueriesToProcess.isEmpty()) {
-                    System.out.println("Powinienem cos zrobic z zapytaniami");
+                    ProcessingQuery pq = QueriesToProcess.peek();
+                    if(System.currentTimeMillis() - pq.waitingStartTime > maxWaitingTime)
+                    {
+                        System.out.println("Minelo 5 sekund od danego zapytania");
+                        QueriesToProcess.remove();
+                    }
                 }
             }
         });
 
 
-
+    System.out.println("Edded setup with success");
     }
 }
