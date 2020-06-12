@@ -3,12 +3,11 @@ package pl.edu.pw.elka.taxiAgents;
 import java.io.IOException;
 
 public interface ClientI {
-    String doQuery(String fromLongitude,
-                   String fromLatitude,
-                   String toLongitude,
-                   String toLatitude,
+    String doQuery(Position from,
+                   Position to,
                    boolean ifBabySeat,
-                    boolean ifHomePet,
-                    int numberOFPassengers,
-                    String kindOfClient) throws IOException;
+                   boolean ifHomePet,
+                   boolean ifLargeLuggage,
+                   int numberOFPassengers,
+                   String kindOfClient) throws IOException;
 }

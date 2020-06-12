@@ -19,28 +19,42 @@ import java.io.IOException;
 
 public class TaxiAgent extends Agent {
 
-    static int longitudeTaxiNow = 0;
-    static int latitudeTaxiNow = 0;
-    static int longitudeTaxiHome = 0;
-    static int latitudeTaxiHome = 0;
-    static boolean ifBabySeat;
-    static boolean ifHomePet;
-    static String kindOFCar;
+    Position positionTaxiNow;
+    Position positionTaxiHome;
+    boolean ifBabySeat;
+    boolean ifHomePet;
+    String kindOFCar;
     //enum kindOFCar {sedan, combi, van, vip};
-    static int numberOFPassengers;
-    static boolean ifStandByForSpecialTask;
-    static boolean ifExperiencedDriver;
-    static String driverStatus;
-    static double workingTimeInThisDay;
-    static double todayEarnings;
-    static int timeFromLastClient;
-    static double speed = 0;
+    int numberOFPassengers;
+    boolean ifStandByForSpecialTask;
+    boolean ifExperiencedDriver;
+    String driverStatus;
+    double workingTimeInThisDay;
+    double todayEarnings;
+    int timeFromLastClient;
+    double timeToEndOrder = 0;
+    double speed = 0;
 
 
 
+        void setupFromArgs(Object[] taxisData) {
+            positionTaxiNow = (Position)(taxisData[0]);
+            positionTaxiHome =(Position)(taxisData[1]);
+            ifBabySeat = (boolean) taxisData[2];
+            ifHomePet = (boolean) taxisData[3];
+            kindOFCar = (String) taxisData[4];
+            numberOFPassengers = (int) taxisData[5];
+            ifStandByForSpecialTask = (boolean) taxisData[6];
+            ifExperiencedDriver = (boolean) taxisData[7];
+            driverStatus = (String) taxisData[8];
+            workingTimeInThisDay = (double) taxisData[9];
+            todayEarnings = (int) taxisData[10];
+            timeFromLastClient = (int) taxisData[11];
+            timeToEndOrder = (int) taxisData[12];
+        }
         protected void setup()
         {
-
+            setupFromArgs(getArguments());
 
             addBehaviour(new CyclicBehaviour(this)
             {
@@ -53,19 +67,19 @@ public class TaxiAgent extends Agent {
                             Object o = msg.getContentObject();
                             if (o instanceof CallCenterToTaxi) {
                                 CallCenterToTaxi cct=(CallCenterToTaxi) o;
-                                int longitudeCustomer = Integer.parseInt(cct.getFrom());
+                                int fromLongitudeCustomer = cct.getFrom().getLongitude();
 
 
-                                double time = Math.abs(longitudeTaxiNow - longitudeCustomer)* latitudeTaxiNow ;
+                                double time = Math.abs(positionTaxiNow.longitude - fromLongitudeCustomer)* positionTaxiNow.latitude;
                                 TaxiToCallCenter response;
                                 if(time>10) {
                                     response=TaxiToCallCenter.reject(cct.getIdQuery());
                                 } else {
-                                    response=TaxiToCallCenter.accepts(longitudeTaxiNow,time,cct.getIdQuery());
+                                    response=TaxiToCallCenter.accepts(positionTaxiNow.longitude,time,cct.getIdQuery());
                                 }
                                 System.out.println(" - " +
                                         myAgent.getLocalName() + " received: " +
-                                        longitudeCustomer+" time "+time + "accepts " +response.isIfAccepts() );
+                                        fromLongitudeCustomer+" time "+time + "accepts " +response.isIfAccepts() );
 
                                 ACLMessage reply = msg.createReply();
                                 reply.setPerformative(ACLMessage.INFORM);
@@ -97,11 +111,8 @@ public class TaxiAgent extends Agent {
 //coinnego
         }
 
-
-        // zrobic maina zrobic maina , tylko on nie musi wysylac zapytan a tylko wystartowac agenta taksowke
-       // ( lub w petli kilka dla wygody)
         public static void main(String[] args) throws StaleProxyException, IOException {
-// Get a hold on JADE runtime
+            // Get a hold on JADE runtime
             Runtime rt = Runtime.instance();
             // Create a default profile
             Profile p = new ProfileImpl();
@@ -112,36 +123,22 @@ public class TaxiAgent extends Agent {
             // and pass it a reference to an Object
 
             Object[][] taxisData = new Object[][]{
-                    {22, -33, 10, 10, true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {22, 2, 10, 10, true, true, "sedan", 8, false, false, "free", 5.5, 150, 20, 40},
-                    {22, 20, 10, 10, true, true, "combi", 8, true, false, "free", 5.5, 150, 20, 40},
-                    {30, 30, 10, 10, true, true, "vip", 8, false, false, "free", 5.5, 150, 20, 40},
-                    {22, 8, 10, 10, true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {40, -33, 10, 10, true, true, "combi", 8, false, true, "free", 5.5, 150, 20, 40},
-                    {22, 5, 10, 10, true, true, "sedan", 8, false, false, "free", 5.5, 150, 20, 40},
-                    {60, -33, 10, 10, true, true, "sedan", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {22, 80, 10, 10, true, true, "combi", 8, false, false, "free", 5.5, 150, 20, 40},
-                    {22, -33, 10, 10, true, true, "sedan", 8, true, true, "free", 5.5, 150, 20, 40}};
-            Object reference = new Object();
-            Object aargs[] = new Object[1];
-            aargs[0]=reference;
+                    {new Position(22, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(12, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(42, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(52, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(2, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40}};
+            //Object reference = new Object();
+           // Object aargs[] = new Object[1];
+            //aargs[0]=reference;
             for (int i = 0; i < 10; i++) {
-                AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData);
-                longitudeTaxiNow = (int) taxisData[i][0];
-                latitudeTaxiNow = (int) taxisData[i][1];
-                longitudeTaxiHome = (int) taxisData[i][2];
-                latitudeTaxiHome = (int) taxisData[i][3];
-                ifBabySeat = (boolean) taxisData[i][4];
-                ifHomePet = (boolean) taxisData[i][5];
-                kindOFCar = (String) taxisData[i][6];
-                numberOFPassengers = (int) taxisData[i][7];
-                ifStandByForSpecialTask = (boolean) taxisData[i][8];
-                ifExperiencedDriver = (boolean) taxisData[i][9];
-                driverStatus = (String) taxisData[i][10];
-                workingTimeInThisDay = (double) taxisData[i][11];
-                todayEarnings = (int) taxisData[i][12];
-                timeFromLastClient = (int) taxisData[i][13];
-                speed = (int) taxisData[i][14];
+                AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
+
 
                 // Fire up the agent
                 dummy.start();

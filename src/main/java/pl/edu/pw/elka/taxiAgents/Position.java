@@ -1,6 +1,8 @@
 package pl.edu.pw.elka.taxiAgents;
 
-public class Position {
+import java.io.Serializable;
+
+public class Position implements Serializable {
     int longitude;
     int latitude;
 
@@ -15,5 +17,13 @@ public class Position {
 
     public int getLatitude() {
         return latitude;
+    }
+
+    public void setLongitude(int longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(int latitude) {
+        this.latitude = latitude;
     }
 }
