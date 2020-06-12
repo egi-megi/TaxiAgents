@@ -19,25 +19,22 @@ import java.io.IOException;
 
 public class TaxiAgent extends Agent {
 
-    String name = "taxi1" ;
-    AID taxiAgent = new AID( name, AID.ISLOCALNAME );
-
-    int longitudeTaxiNow = 0;
-    int latitudeTaxiNow = 0;
-    double speed = 0;
-    int longitudeTaxiHome = 0;
-    int latitudeTaxiHome = 0;
-    boolean ifBabySeat;
-    boolean ifHomePet;
-    String kindOFCar;
-    int numberOFPassengers;
-    double taxiFare;
-    boolean ifExperiencedDriver;
-    String driverStatus;
-    double workingTimeInThisDay;
-    double todayEarnings;
-    int timeFromLasClient;
-
+    static int longitudeTaxiNow = 0;
+    static int latitudeTaxiNow = 0;
+    static int longitudeTaxiHome = 0;
+    static int latitudeTaxiHome = 0;
+    static boolean ifBabySeat;
+    static boolean ifHomePet;
+    static String kindOFCar;
+    //enum kindOFCar {sedan, combi, van, vip};
+    static int numberOFPassengers;
+    static boolean ifStandByForSpecialTask;
+    static boolean ifExperiencedDriver;
+    static String driverStatus;
+    static double workingTimeInThisDay;
+    static double todayEarnings;
+    static int timeFromLastClient;
+    static double speed = 0;
 
 
 
@@ -59,7 +56,7 @@ public class TaxiAgent extends Agent {
                                 int longitudeCustomer = Integer.parseInt(cct.getFrom());
 
 
-                                double time = Math.abs(longitudeTaxiNow - longitudeCustomer) ;
+                                double time = Math.abs(longitudeTaxiNow - longitudeCustomer)* latitudeTaxiNow ;
                                 TaxiToCallCenter response;
                                 if(time>10) {
                                     response=TaxiToCallCenter.reject(cct.getIdQuery());
@@ -113,11 +110,41 @@ public class TaxiAgent extends Agent {
             ContainerController cc = rt.createAgentContainer(p);
             // Create a new agent, a DummyAgent
             // and pass it a reference to an Object
+
+            Object[][] taxisData = new Object[][]{
+                    {22, -33, 10, 10, true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {22, 2, 10, 10, true, true, "sedan", 8, false, false, "free", 5.5, 150, 20, 40},
+                    {22, 20, 10, 10, true, true, "combi", 8, true, false, "free", 5.5, 150, 20, 40},
+                    {30, 30, 10, 10, true, true, "vip", 8, false, false, "free", 5.5, 150, 20, 40},
+                    {22, 8, 10, 10, true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {40, -33, 10, 10, true, true, "combi", 8, false, true, "free", 5.5, 150, 20, 40},
+                    {22, 5, 10, 10, true, true, "sedan", 8, false, false, "free", 5.5, 150, 20, 40},
+                    {60, -33, 10, 10, true, true, "sedan", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {22, 80, 10, 10, true, true, "combi", 8, false, false, "free", 5.5, 150, 20, 40},
+                    {22, -33, 10, 10, true, true, "sedan", 8, true, true, "free", 5.5, 150, 20, 40}};
             Object reference = new Object();
             Object aargs[] = new Object[1];
             aargs[0]=reference;
-            AgentController dummy = cc.createNewAgent("taxi-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", args);
-            // Fire up the agent
-            dummy.start();
+            for (int i = 0; i < 10; i++) {
+                AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData);
+                longitudeTaxiNow = (int) taxisData[i][0];
+                latitudeTaxiNow = (int) taxisData[i][1];
+                longitudeTaxiHome = (int) taxisData[i][2];
+                latitudeTaxiHome = (int) taxisData[i][3];
+                ifBabySeat = (boolean) taxisData[i][4];
+                ifHomePet = (boolean) taxisData[i][5];
+                kindOFCar = (String) taxisData[i][6];
+                numberOFPassengers = (int) taxisData[i][7];
+                ifStandByForSpecialTask = (boolean) taxisData[i][8];
+                ifExperiencedDriver = (boolean) taxisData[i][9];
+                driverStatus = (String) taxisData[i][10];
+                workingTimeInThisDay = (double) taxisData[i][11];
+                todayEarnings = (int) taxisData[i][12];
+                timeFromLastClient = (int) taxisData[i][13];
+                speed = (int) taxisData[i][14];
+
+                // Fire up the agent
+                dummy.start();
+            }
         }
     }

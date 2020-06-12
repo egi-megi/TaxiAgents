@@ -3,8 +3,14 @@ package pl.edu.pw.elka.taxiAgents.messages;
 import java.io.Serializable;
 
 public class CallCenterToTaxi implements Serializable {
-    String from;
-    String to;
+    String fromLongitude;
+    String fromLatitude;
+    String toLongitude;
+    String toLatitude;
+    boolean ifBabySeat;
+    boolean ifHomePet;
+    int numberOFPassengers;
+    String kindOfClient;
     String idQuery;
 
     public CallCenterToTaxi(String from, String to, String idQuery) {

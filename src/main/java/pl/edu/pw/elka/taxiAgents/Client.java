@@ -24,9 +24,6 @@ public class Client extends Agent implements ClientI {
         registerO2AInterface(ClientI.class,this);
     }
 
-    String name = "client-"+System.currentTimeMillis() ;
-    AID customer = new AID( name, AID.ISLOCALNAME );
-
 
 
     protected void setup()
@@ -68,12 +65,20 @@ public class Client extends Agent implements ClientI {
 
 
     @Override
-    public String doQuery(String query) throws IOException {
+    public String doQuery(String fromLongitude,
+                          String fromLatitude,
+                          String toLongitude,
+                          String toLatitude,
+                          boolean ifBabySeat,
+                          boolean ifHomePet,
+                          int numberOFPassengers,
+                          String kindOfClient) throws IOException {
+
         ACLMessage msg= new ACLMessage(ACLMessage.INFORM);
 
         msg.addReceiver(new AID("callCenter", AID.ISLOCALNAME));
 
-        CallTaxi ct=new CallTaxi(query, "22222");
+        CallTaxi ct=new CallTaxi(fromLongitude, fromLatitude, toLongitude, toLatitude, ifBabySeat, ifHomePet, numberOFPassengers, kindOfClient);
         msg.setContentObject(ct);
         send(msg);
         return null;
@@ -105,7 +110,7 @@ public class Client extends Agent implements ClientI {
                     e.printStackTrace();
                 }
             }
-            dummy.getO2AInterface(ClientI.class).doQuery(""+i);
+            dummy.getO2AInterface(ClientI.class).doQuery("777", "22222", "44", "55",true, false, 4, "normal");
         }
     }
 

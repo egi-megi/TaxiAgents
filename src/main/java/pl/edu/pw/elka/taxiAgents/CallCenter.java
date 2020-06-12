@@ -56,7 +56,7 @@ public class CallCenter extends Agent
         if (!pq.taxisToCheck.isEmpty()){
             AID taxi=pq.taxisToCheck.poll();
             ACLMessage mesg=new ACLMessage(ACLMessage.REQUEST);
-            CallCenterToTaxi cct=new CallCenterToTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id);
+            CallCenterToTaxi cct=new CallCenterToTaxi(pq.query.getFromLatitude(), pq.query.getToLatitude(), pq.id);
             mesg.setContentObject(cct);
             mesg.addReceiver(taxi);
             send(mesg);
@@ -166,7 +166,7 @@ public class CallCenter extends Agent
 
                         if (mesg instanceof TaxiRegister) {
                             taxis.add(msgI.getSender());
-                            System.out.println("Rejestruje taksowke "+msgI.getSender().getName());
+                            System.out.println("Rejestruje taksówkę "+msgI.getSender().getName());
                         }
 
                     } catch (UnreadableException e) {
