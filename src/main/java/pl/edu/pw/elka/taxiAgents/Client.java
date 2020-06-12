@@ -24,18 +24,12 @@ public class Client extends Agent implements ClientI {
         registerO2AInterface(ClientI.class,this);
     }
 
-
-
     protected void setup()
     {
-
-
-        // First set-up answering behaviour
 
         addBehaviour(new CyclicBehaviour(this)
         {
             public void action() {
-                // Send messages to "a1" and "a2"
 
                 ACLMessage msgI = receive();
                 if (msgI != null) {
@@ -59,18 +53,15 @@ public class Client extends Agent implements ClientI {
             }
         });
 
-
-
     }
 
 
     @Override
-    public String doQuery(String fromLongitude,
-                          String fromLatitude,
-                          String toLongitude,
-                          String toLatitude,
+    public String doQuery(Position from,
+                          Position to,
                           boolean ifBabySeat,
                           boolean ifHomePet,
+                          boolean ifLargeLuggage,
                           int numberOFPassengers,
                           String kindOfClient) throws IOException {
 
@@ -78,9 +69,10 @@ public class Client extends Agent implements ClientI {
 
         msg.addReceiver(new AID("callCenter", AID.ISLOCALNAME));
 
-        CallTaxi ct=new CallTaxi(fromLongitude, fromLatitude, toLongitude, toLatitude, ifBabySeat, ifHomePet, numberOFPassengers, kindOfClient);
+        CallTaxi ct=new CallTaxi(from, to, ifBabySeat, ifHomePet, ifLargeLuggage, numberOFPassengers, kindOfClient);
         msg.setContentObject(ct);
         send(msg);
+        System.out.println("Zapytałem o kurs");
         return null;
     }
 
@@ -95,12 +87,12 @@ public class Client extends Agent implements ClientI {
         ContainerController cc = rt.createAgentContainer(p);
         // Create a new agent, a DummyAgent
         // and pass it a reference to an Object
-        Object reference = new Object();
-        Object aargs[] = new Object[1];
-        aargs[0]=reference;
-        AgentController dummy = cc.createNewAgent("client-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.Client", args);
+        //Object reference = new Object();
+        //Object aargs[] = new Object[1];
+        //aargs[0]=reference;
+        AgentController acClient = cc.createNewAgent("client-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.Client", args);
         // Fire up the agent
-        dummy.start();
+        acClient.start();
         for (int i =0 ; i<100; i=i+10) {
             Object o=new Object();
             synchronized (o) {
@@ -110,7 +102,7 @@ public class Client extends Agent implements ClientI {
                     e.printStackTrace();
                 }
             }
-            dummy.getO2AInterface(ClientI.class).doQuery("777", "22222", "44", "55",true, false, 4, "normal");
+            acClient.getO2AInterface(ClientI.class).doQuery(new Position(0, 22), new Position(55,66), true, false,true, 3, "normal");
         }
     }
 

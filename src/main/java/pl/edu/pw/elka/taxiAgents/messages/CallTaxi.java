@@ -1,42 +1,34 @@
 package pl.edu.pw.elka.taxiAgents.messages;
 
+import pl.edu.pw.elka.taxiAgents.Position;
+
 import java.io.Serializable;
 
 public class CallTaxi implements Serializable {
-    String fromLongitude;
-    String fromLatitude;
-    String toLongitude;
-    String toLatitude;
+    Position from;
+    Position to;
     boolean ifBabySeat;
     boolean ifHomePet;
+    boolean ifLargeLuggage;
     int numberOFPassengers;
     String kindOfClient;
 
-    public CallTaxi(String fromLongitude, String fromLatitude, String toLongitude, String toLatitude, boolean ifBabySeat, boolean ifHomePet, int numberOFPassengers, String kindOfClient) {
-        this.fromLongitude = fromLongitude;
-        this.fromLatitude = fromLatitude;
-        this.toLongitude = toLongitude;
-        this.toLatitude = toLatitude;
+    public CallTaxi(Position from, Position to, boolean ifBabySeat, boolean ifHomePet, boolean ifLargeLuggage, int numberOFPassengers, String kindOfClient) {
+        this.from = from;
+        this.to = to;
         this.ifBabySeat = ifBabySeat;
         this.ifHomePet = ifHomePet;
+        this.ifLargeLuggage = ifLargeLuggage;
         this.numberOFPassengers = numberOFPassengers;
         this.kindOfClient = kindOfClient;
     }
 
-    public String getFromLongitude() {
-        return fromLongitude;
+    public Position getFrom() {
+        return from;
     }
 
-    public String getFromLatitude() {
-        return fromLatitude;
-    }
-
-    public String getToLongitude() {
-        return toLongitude;
-    }
-
-    public String getToLatitude() {
-        return toLatitude;
+    public Position getTo() {
+        return to;
     }
 
     public boolean isIfBabySeat() {
@@ -45,6 +37,10 @@ public class CallTaxi implements Serializable {
 
     public boolean isIfHomePet() {
         return ifHomePet;
+    }
+
+    public boolean isIfLargeLuggage() {
+        return ifLargeLuggage;
     }
 
     public int getNumberOFPassengers() {
