@@ -97,7 +97,7 @@ public class TaxiAgent extends Agent {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
+//coinnego
         }
 
 
