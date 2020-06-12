@@ -55,6 +55,21 @@ public class TaxiAgent extends Agent {
             timeFromLastClient = (int) taxisData[11];
             timeToEndOrder = (int) taxisData[12];
         }
+        boolean isMissingBabySeat(CallCenterToTaxi cct){
+            return cct.isIfBabySeat() && ifBabySeat == false;
+        }
+        boolean canNotTakePet(CallCenterToTaxi cct) {
+            return (cct.isIfHomePet() && ifHomePet == false);
+        }
+        boolean canNotTakeLuggage(CallCenterToTaxi cct) {
+            return  cct.isIfLargeLuggage() &&
+                    (!
+                            (kindOFCar.equalsIgnoreCase("van")
+                            || (kindOFCar.equalsIgnoreCase("combi"))
+                            ));
+        }
+
+
         protected void setup()
         {
             setupFromArgs(getArguments());
@@ -84,18 +99,21 @@ public class TaxiAgent extends Agent {
                             if (o instanceof CallCenterToTaxi) {
                                 CallCenterToTaxi cct=(CallCenterToTaxi) o;
                                 int fromLongitudeCustomer = cct.getFrom().getLongitude();
-
-
-                                double time = Math.abs(positionTaxiNow.longitude - fromLongitudeCustomer)* positionTaxiNow.latitude;
                                 TaxiToCallCenter response;
-                                if(time>10) {
+
+                                if(isMissingBabySeat(cct) ||
+                                   canNotTakePet(cct) ||
+                                //(cct.getNumberOFPassengers() > numberOFPassengers) ||
+                                       canNotTakeLuggage(cct)
+                                ) {
                                     response=TaxiToCallCenter.reject(cct.getIdQuery());
                                 } else {
-                                    response=TaxiToCallCenter.accepts(positionTaxiNow.longitude,time,cct.getIdQuery());
+                                    double time = Math.abs(positionTaxiNow.longitude - fromLongitudeCustomer) * positionTaxiNow.latitude;
+                                    response = TaxiToCallCenter.accepts(positionTaxiNow.longitude, time, cct.getIdQuery());
+                                    System.out.println(" - " +
+                                            myAgent.getLocalName() + " received: " +
+                                            fromLongitudeCustomer + " time " + time + "accepts " + response.isIfAccepts());
                                 }
-                                System.out.println(" - " +
-                                        myAgent.getLocalName() + " received: " +
-                                        fromLongitudeCustomer+" time "+time + "accepts " +response.isIfAccepts() );
 
                                 ACLMessage reply = msg.createReply();
                                 reply.setPerformative(ACLMessage.INFORM);
@@ -138,23 +156,20 @@ public class TaxiAgent extends Agent {
             // and pass it a reference to an Object
 
             Object[][] taxisData = new Object[][]{
-//                    {new Position(22, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(12, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(42, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(52, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-//                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(22, -44), new Position(-33, -33), true, true, "sedan", 4, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(12, 44), new Position(-33, -33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(42, -44), new Position(-33, -33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(52, 44), new Position(-33, -33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
                     {new Position(2, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40}};
             //Object reference = new Object();
            // Object aargs[] = new Object[1];
             //aargs[0]=reference;
             for (int i = 0; i < 1; i++) {
-                try{
-                    Thread.sleep(2);
-                } catch (Exception e) {}
                 AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
 
 

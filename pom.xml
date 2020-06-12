@@ -29,7 +29,16 @@
             <artifactId>jade</artifactId>
             <version>4.5.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.tilab.jade/jade-test-suite -->
+        <dependency>
+            <groupId>com.tilab.jade</groupId>
+            <artifactId>jade-test-suite</artifactId>
+            <scope>test</scope>
+            <version>1.13.0</version>
+        </dependency>
+
     </dependencies>
+
 
     <repositories>
         <repository>

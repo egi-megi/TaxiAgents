@@ -93,7 +93,7 @@ public class Client extends Agent implements ClientI {
         AgentController acClient = cc.createNewAgent("client-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.Client", args);
         // Fire up the agent
         acClient.start();
-        for (int i =0 ; i<100; i=i+10) {
+        for (int i =0 ; i<10; i=i+10) {
             Object o=new Object();
             synchronized (o) {
                 try {
@@ -102,7 +102,7 @@ public class Client extends Agent implements ClientI {
                     e.printStackTrace();
                 }
             }
-            acClient.getO2AInterface(ClientI.class).doQuery(new Position(0, 22), new Position(55,66), true, false,true, 3, "normal");
+            acClient.getO2AInterface(ClientI.class).doQuery(new Position(0, 22), new Position(55,66), false, true,true, 3, "normal");
         }
     }
 
