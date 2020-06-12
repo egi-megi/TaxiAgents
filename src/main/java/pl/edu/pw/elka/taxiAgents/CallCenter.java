@@ -20,32 +20,40 @@ public class CallCenter extends Agent
         String id;
         CallTaxi query;
         Queue<AID> taxisToCheck;
+        Queue<ACLMessage> acceptedMessages;
         AID customer;
+        long waitingStartTime;
 
         public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer) {
             this.id = id;
             this.query = query;
             this.taxisToCheck = taxisToCheck;
             this.customer = customer;
+            this.waitingStartTime = System.currentTimeMillis();
         }
     }
+
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
     Map<String,ProcessingQuery> activeQueries=new HashMap<>();
 
+    Queue<ProcessingQuery> QueriesToProcess;
+
     Set<AID> taxis=new HashSet<>();
 
-    void sendQueryToNextTaxi(ProcessingQuery pq) throws IOException {
-        if (!pq.taxisToCheck.isEmpty()){
-            AID taxi=pq.taxisToCheck.poll();
+    void sendQueryToAllTaxis(ProcessingQuery pq) throws IOException {
+        for(AID taxi : taxis)
+        {
+            sendQueryToNextTaxi(pq, taxi);
+        }
+    }
+
+    void sendQueryToNextTaxi(ProcessingQuery pq, AID taxi) throws IOException {
             ACLMessage mesg=new ACLMessage(ACLMessage.REQUEST);
             CallCenterToTaxi cct=new CallCenterToTaxi(pq.query.getFrom(), pq.query.getTo(),pq.query.isIfBabySeat(), pq.query.isIfHomePet(), pq.query.isIfLargeLuggage(), pq.query.getNumberOFPassengers(), pq.query.getKindOfClient(), pq.id);
             mesg.setContentObject(cct);
             mesg.addReceiver(taxi);
             send(mesg);
-        } else {
-            System.out.println("Brak dostępnych taksówek.");
-        }
     }
 
 
@@ -68,42 +76,48 @@ public class CallCenter extends Agent
         {
             public void action() {
 
-                ACLMessage msgI= receive();
-                do  {
-                System.out.println("next message to call center");
+                //this counter is used when we send client info to taxis
+                long waitingStartTime;
+                ACLMessage msgI = receive();
+                do {
+                    System.out.println("next message to call center");
 
-                if (msgI!=null) {
-                    try {
-                        Object mesg=msgI.getContentObject();
-                        if (mesg instanceof CallTaxi) {
-                            System.out.println("klient query");
+                    if (msgI != null) {
+                        try {
+                            Object mesg = msgI.getContentObject();
+                            if (mesg instanceof CallTaxi) {
+                                System.out.println("klient query");
 
-                            CallTaxi ct=(CallTaxi) mesg;
-                            if (taxis.isEmpty()) {
-                                System.out.println("Nie mamy żadnej taksówki zarejestrowanej.");
-                            } else {
-                                ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
-                                        ct,
-                                        new LinkedList<>(taxis),
-                                        msgI.getSender());
-                                activeQueries.put(pq.id, pq);
-                                try {
-                                    sendQueryToNextTaxi(pq);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                CallTaxi ct = (CallTaxi) mesg;
+                                if (taxis.isEmpty()) {
+                                    System.out.println("Nie mamy żadnej taksówki zarejestrowanej.");
+                                } else {
+                                    ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
+                                            ct,
+                                            new LinkedList<>(taxis),
+                                            msgI.getSender());
+                                    QueriesToProcess.add(pq);
+                                    //activeQueries.put(pq.id, pq);
+                                    try {
+                                        //We sends info about query to all taxis;
+                                        sendQueryToAllTaxis(pq);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
-                        }
-                        if (mesg instanceof TaxiToCallCenter) {
-                            //System.out.println("Taxi to callcenter");
-                            TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
-                            System.out.println("== Answer" + " <- "+tcc.isIfAccepts());
-                            if (tcc.isIfAccepts()) {
-                                ProcessingQuery pq=activeQueries.get(tcc.getQueryID());
-                                activeQueries.remove(tcc.getQueryID());
-                                System.out.println("== Answer" + " <- "
-                                        + tcc.getTimeToPickUp() + " from "
-                                        + tcc.getTaxiPlace() + msgI.getSender().getName());
+                            if (mesg instanceof TaxiToCallCenter) {
+                                //System.out.println("Taxi to callcenter");
+                                TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
+                                System.out.println("== Answer" + " <- " + tcc.isIfAccepts());
+                                if (tcc.isIfAccepts()) {
+                                    ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
+                                    pq.acceptedMessages.add(msgI);
+                                    //activeQueries.remove(tcc.getQueryID());
+                                    System.out.println("== Answer" + " <- "
+                                            + tcc.getTimeToPickUp() + " from "
+                                            + tcc.getTaxiPlace() + msgI.getSender().getName());
+                            /*
                                 ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
                                 System.out.println("Informuję taxi o tym, że bierze przejazd:");
                                 System.out.println(msgI.getSender().getName());
@@ -129,31 +143,34 @@ public class CallCenter extends Agent
                                         + tcc.getTaxiPlace() + msgI.getSender().getName());
                                 rmesg.addReceiver(pq.customer);
                                 send(rmesg);**/
+                                /*
                             } else {
                                 try {
                                     sendQueryToNextTaxi(activeQueries.get(tcc.getQueryID()));
                                     //System.out.println("Szukalem nastepnej taksowki");
                                 } catch (IOException e) {
                                     e.printStackTrace();
+                                } */
                                 }
+
                             }
+
+                            if (mesg instanceof TaxiRegister) {
+                                taxis.add(msgI.getSender());
+                                System.out.println("Rejestruje taksówkę " + msgI.getSender().getName());
+                            }
+
+                        } catch (UnreadableException e) {
+                            e.printStackTrace();
                         }
 
-                        if (mesg instanceof TaxiRegister) {
-                            taxis.add(msgI.getSender());
-                            System.out.println("Rejestruje taksówkę "+msgI.getSender().getName());
-                        }
 
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
                     }
+                } while ((msgI = receive()) != null);
 
-
-
+                if (!QueriesToProcess.isEmpty()) {
+                    System.out.println("Powinienem cos zrobic z zapytaniami");
                 }
-                } while ((msgI=receive())!=null);
-
-                block();
             }
         });
 
