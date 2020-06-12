@@ -15,23 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CallCenter extends Agent
 {
-    //TODO: zaprojektowac cztery pierwsze typy wiadomosci:
-    //1. client wzywa taksowke
-    //2. taksowka zglasza sie ze jest aktywna
-    //3.  taksowka odpowiada call center na temat zgloszenie
-    // te trzy pierwsze wiadomosci musza byc rozruznaine w action call center
-    //4. call center pyta taksowke o obsuzenie zlecenie
-    // 5. call center odpowiada clientowi
-    //
-    //TODO: dodac liste aktywnych taksowek
-    //TODO: dodac mape przetwarzanych zapytan
-    // identyfikowac zapytanie z klientem, zeby wiedziec komu odpowiedziec
-    // dodac
-
-    String name = "callCenter" ;
-    AID customer = new AID( name, AID.ISLOCALNAME );
-
-    private String longitude = "11";
 
     static class ProcessingQuery{
         String id;
@@ -56,7 +39,7 @@ public class CallCenter extends Agent
         if (!pq.taxisToCheck.isEmpty()){
             AID taxi=pq.taxisToCheck.poll();
             ACLMessage mesg=new ACLMessage(ACLMessage.REQUEST);
-            CallCenterToTaxi cct=new CallCenterToTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id);
+            CallCenterToTaxi cct=new CallCenterToTaxi(pq.query.getFrom(), pq.query.getTo(),pq.query.isIfBabySeat(), pq.query.isIfHomePet(), pq.query.isIfLargeLuggage(), pq.query.getNumberOFPassengers(), pq.query.getKindOfClient(), pq.id);
             mesg.setContentObject(cct);
             mesg.addReceiver(taxi);
             send(mesg);
@@ -70,8 +53,6 @@ public class CallCenter extends Agent
     protected void setup()
     {
 
-
-
         System.out.println("Agent centrali "+getAID().getName()+" jest gotowy.");
         // Get the longitude of customer
         /*Object[] args = getArguments();
@@ -83,26 +64,20 @@ public class CallCenter extends Agent
              doDelete();
         }*/
 
-        // First set-up answering behaviour
-
         addBehaviour(new CyclicBehaviour(this)
         {
             public void action() {
-                // Send messages to "a1" and "a2"
-// TODO zrobic casa po mastepijacych wiadomosciach
-                ACLMessage msgI= receive();
-                // TODO case 1: zapytanie od klienta
-                // TODO case 2: zgloszenie taksowki
-                // TODO case 3: odpowiedz taksowki kiedy bedzie
 
-                //System.out.println("next message to call center");
+                ACLMessage msgI= receive();
+                do  {
+                System.out.println("next message to call center");
 
                 if (msgI!=null) {
                     try {
                         Object mesg=msgI.getContentObject();
                         if (mesg instanceof CallTaxi) {
                             System.out.println("klient query");
-                            // TODO: client pyta o taksowke
+
                             CallTaxi ct=(CallTaxi) mesg;
                             if (taxis.isEmpty()) {
                                 System.out.println("Nie mamy żadnej taksówki zarejestrowanej.");
@@ -166,7 +141,7 @@ public class CallCenter extends Agent
 
                         if (mesg instanceof TaxiRegister) {
                             taxis.add(msgI.getSender());
-                            System.out.println("Rejestruje taksowke "+msgI.getSender().getName());
+                            System.out.println("Rejestruje taksówkę "+msgI.getSender().getName());
                         }
 
                     } catch (UnreadableException e) {
@@ -176,6 +151,8 @@ public class CallCenter extends Agent
 
 
                 }
+                } while ((msgI=receive())!=null);
+
                 block();
             }
         });

@@ -19,31 +19,42 @@ import java.io.IOException;
 
 public class TaxiAgent extends Agent {
 
-    String name = "taxi1" ;
-    AID taxiAgent = new AID( name, AID.ISLOCALNAME );
-
-    int longitudeTaxiNow = 0;
-    int latitudeTaxiNow = 0;
-    double speed = 0;
-    int longitudeTaxiHome = 0;
-    int latitudeTaxiHome = 0;
+    Position positionTaxiNow;
+    Position positionTaxiHome;
     boolean ifBabySeat;
     boolean ifHomePet;
     String kindOFCar;
+    //enum kindOFCar {sedan, combi, van, vip};
     int numberOFPassengers;
-    double taxiFare;
+    boolean ifStandByForSpecialTask;
     boolean ifExperiencedDriver;
     String driverStatus;
     double workingTimeInThisDay;
     double todayEarnings;
-    int timeFromLasClient;
+    int timeFromLastClient;
+    double timeToEndOrder = 0;
+    double speed = 0;
 
 
 
-
+        void setupFromArgs(Object[] taxisData) {
+            positionTaxiNow = (Position)(taxisData[0]);
+            positionTaxiHome =(Position)(taxisData[1]);
+            ifBabySeat = (boolean) taxisData[2];
+            ifHomePet = (boolean) taxisData[3];
+            kindOFCar = (String) taxisData[4];
+            numberOFPassengers = (int) taxisData[5];
+            ifStandByForSpecialTask = (boolean) taxisData[6];
+            ifExperiencedDriver = (boolean) taxisData[7];
+            driverStatus = (String) taxisData[8];
+            workingTimeInThisDay = (double) taxisData[9];
+            todayEarnings = (int) taxisData[10];
+            timeFromLastClient = (int) taxisData[11];
+            timeToEndOrder = (int) taxisData[12];
+        }
         protected void setup()
         {
-
+            setupFromArgs(getArguments());
 
             addBehaviour(new CyclicBehaviour(this)
             {
@@ -56,19 +67,19 @@ public class TaxiAgent extends Agent {
                             Object o = msg.getContentObject();
                             if (o instanceof CallCenterToTaxi) {
                                 CallCenterToTaxi cct=(CallCenterToTaxi) o;
-                                int longitudeCustomer = Integer.parseInt(cct.getFrom());
+                                int fromLongitudeCustomer = cct.getFrom().getLongitude();
 
 
-                                double time = Math.abs(longitudeTaxiNow - longitudeCustomer) ;
+                                double time = Math.abs(positionTaxiNow.longitude - fromLongitudeCustomer)* positionTaxiNow.latitude;
                                 TaxiToCallCenter response;
                                 if(time>10) {
                                     response=TaxiToCallCenter.reject(cct.getIdQuery());
                                 } else {
-                                    response=TaxiToCallCenter.accepts(longitudeTaxiNow,time,cct.getIdQuery());
+                                    response=TaxiToCallCenter.accepts(positionTaxiNow.longitude,time,cct.getIdQuery());
                                 }
                                 System.out.println(" - " +
                                         myAgent.getLocalName() + " received: " +
-                                        longitudeCustomer+" time "+time + "accepts " +response.isIfAccepts() );
+                                        fromLongitudeCustomer+" time "+time + "accepts " +response.isIfAccepts() );
 
                                 ACLMessage reply = msg.createReply();
                                 reply.setPerformative(ACLMessage.INFORM);
@@ -100,11 +111,8 @@ public class TaxiAgent extends Agent {
 //coinnego
         }
 
-
-        // zrobic maina zrobic maina , tylko on nie musi wysylac zapytan a tylko wystartowac agenta taksowke
-       // ( lub w petli kilka dla wygody)
         public static void main(String[] args) throws StaleProxyException, IOException {
-// Get a hold on JADE runtime
+            // Get a hold on JADE runtime
             Runtime rt = Runtime.instance();
             // Create a default profile
             Profile p = new ProfileImpl();
@@ -113,11 +121,27 @@ public class TaxiAgent extends Agent {
             ContainerController cc = rt.createAgentContainer(p);
             // Create a new agent, a DummyAgent
             // and pass it a reference to an Object
-            Object reference = new Object();
-            Object aargs[] = new Object[1];
-            aargs[0]=reference;
-            AgentController dummy = cc.createNewAgent("taxi-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", args);
-            // Fire up the agent
-            dummy.start();
+
+            Object[][] taxisData = new Object[][]{
+                    {new Position(22, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(12, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(42, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(52, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+                    {new Position(2, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40}};
+            //Object reference = new Object();
+           // Object aargs[] = new Object[1];
+            //aargs[0]=reference;
+            for (int i = 0; i < 10; i++) {
+                AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
+
+
+                // Fire up the agent
+                dummy.start();
+            }
         }
     }
