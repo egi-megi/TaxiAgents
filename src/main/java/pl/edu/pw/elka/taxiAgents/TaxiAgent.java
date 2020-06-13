@@ -51,7 +51,10 @@ public class TaxiAgent extends Agent {
     double timeToEndOrder = 0;
     double maximumSpeed = 0; ///< points per seconds
 
+    boolean isRidingWithClient = false; ///< specifies if client is in a taxi
     boolean isMoving = false; ///< specifies if taxi is moving
+    Position clientDestination;
+    Position clientStartPoint;
     List<Position> route = new ArrayList<>(); ///< remaining route to destination
 
     void setupFromArgs(Object[] taxisData) {
@@ -93,19 +96,25 @@ public class TaxiAgent extends Agent {
     protected void setup() {
         setupFromArgs(getArguments());
 
-            //TODO temp
-            maximumSpeed = 5;
+        //TODO temp
+        maximumSpeed = 5;
 //            route.add(new Position(2, 80));
 //            route.add(new Position(25, 80));
 //            route.add(new Position(25, 60));
 //            route.add(new Position(14, 60));
 //            route.add(new Position(-10, -10));
 //            route.add(new Position(20, 20));
-            route = createRoute(positionTaxiNow, new Position(60, 60));
-            isMoving = true;
-            long movingDelay = 1000;
+//            route = createRoute(positionTaxiNow, new Position(60, 60));
+//            driverStatus = DRIVER_STATUS_WORKING;
+//            isMoving = true;
+        clientStartPoint = new Position(60, 60);
+        clientDestination = new Position(10, 3);
 
-            addBehaviour(new MovementBehaviour(this, movingDelay));
+        long movingDelay = 1000;
+        long schedulerDelay = 500;
+
+        addBehaviour(new MovementBehaviour(this, movingDelay));
+        addBehaviour(new TaskScheduler(this, schedulerDelay));
 
             addBehaviour(new CyclicBehaviour(this)
             {
@@ -277,24 +286,28 @@ public class TaxiAgent extends Agent {
         }
 
         public void action() {
-            if(!isMoving || route.isEmpty()) { // if not moving or nowhere to go - do nothing
+            // if not moving or nowhere to go - do nothing
+            if(!isMoving || route.isEmpty()) {
                 previousActionTime = 0;
                 block(delay); //TODO może da się tu zrobić oczekiwanie na wiadomość
                 return;
             }
 
             long currentTime = System.currentTimeMillis();
-            if(previousActionTime != 0) { // if previous time == 0 there is nothing to calculate
+            // if previous time == 0 there is nothing to calculate
+            if(previousActionTime != 0) {
                 long millisecondsPassed = currentTime - previousActionTime;
                 double quantumOfTraveledDistance = speedInPointsPerMs * millisecondsPassed;
                 double distanceToNextPoint = distanceBetweenTwoPoints(route.get(0), positionTaxiNow);
-                if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
+                //if next point is not reached (it implies that distanceToNextPoint > 0)
+                if(quantumOfTraveledDistance < distanceToNextPoint) {
                     positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
                     positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
-                    System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude + " remaining time: " +
-                            calculateRouteTime(positionTaxiNow, route) + " seconds");
+                    System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " +
+                            positionTaxiNow.latitude + " time till job end: " + timeToEndOrder + " seconds");
 
                 }
+                // next point is reached in this move
                 else {
                     positionTaxiNow = route.get(0);
                     route.remove(0);
@@ -318,6 +331,73 @@ public class TaxiAgent extends Agent {
             isMoving = false;
             previousActionTime = 0;
             System.out.println(" - " + myAgent.getLocalName() + " destination reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
+        }
+    }
+
+
+    /**
+     * Class that tells taxi to move and checks if it reached destination.
+     */
+    class TaskScheduler extends CyclicBehaviour {
+        long delay;
+        long timeOfLastJobEnd = System.currentTimeMillis();
+
+        TaskScheduler(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            timeToEndOrder = 0;
+            timeFromLastClient = 0;
+
+            //things to do if driver is working
+            if(driverStatus.equals(DRIVER_STATUS_WORKING)) {
+                //If driver is working but not moving it means, he reached destination.
+                if(!isMoving) {
+                    //If he was riding with a client, he's now free and clears memory out of previous directions.
+                    if(isRidingWithClient) {
+                        driverStatus = DRIVER_STATUS_FREE;
+                        isRidingWithClient = false;
+                        clientStartPoint = null;
+                        clientDestination = null;
+                        timeOfLastJobEnd = System.currentTimeMillis();
+                        System.out.println(" - " + myAgent.getLocalName() + " job done");
+                    }
+                    //Otherwise, it's time to pick up a client.
+                    else {
+                        route = createRoute(positionTaxiNow, clientDestination);
+                        isRidingWithClient = true;
+                        isMoving = true;
+                        timeToEndOrder = calculateRouteTime(positionTaxiNow, route);
+                        System.out.println(" - " + myAgent.getLocalName() + " picking up the client");
+                    }
+                }
+                //Otherwise driver is moving and time to end must be calculated
+                else {
+                    timeToEndOrder = calculateRouteTime(positionTaxiNow, route);
+                    //If driver is going for a client, ride with a client must be included.
+                    if(!isRidingWithClient) timeToEndOrder = timeToEndOrder +
+                            calculateRouteTime(clientStartPoint, createRoute(clientStartPoint, clientDestination));
+                }
+            }
+
+            //Things to do when driver is free.
+            else if(driverStatus.equals(DRIVER_STATUS_FREE)) {
+                //If clientDestination and clientStartPoint is not null, it's time to go.
+                if (clientDestination != null && clientStartPoint != null) {
+                    driverStatus = DRIVER_STATUS_WORKING;
+                    route = createRoute(positionTaxiNow, clientStartPoint);
+                    isRidingWithClient = false;
+                    isMoving = true;
+                    System.out.println(" - " + myAgent.getLocalName() + " starting job - going for a client");
+                } else {
+                    timeFromLastClient = (int) (System.currentTimeMillis() - timeOfLastJobEnd) / 1000; //in seconds
+                    System.out.println(" - " + myAgent.getLocalName() + " time since last job: " + timeFromLastClient);
+                }
+            }
+
+            block(delay);
         }
     }
 }
