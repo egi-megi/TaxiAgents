@@ -20,7 +20,7 @@ public class CallCenter extends Agent
         String id;
         CallTaxi query;
         Queue<AID> taxisToCheck;
-        Queue<Object> acceptedMessages = new LinkedList<Object>();
+        Queue<Object> acceptedMessages;
         AID customer;
         long waitingStartTime;
 
@@ -30,6 +30,7 @@ public class CallCenter extends Agent
             this.taxisToCheck = taxisToCheck;
             this.customer = customer;
             this.waitingStartTime = System.currentTimeMillis();
+            this.acceptedMessages = new LinkedList<>();
         }
     }
     static long maxWaitingTime = 5000L;
@@ -55,6 +56,20 @@ public class CallCenter extends Agent
             mesg.setContentObject(cct);
             mesg.addReceiver(taxi);
             send(mesg);
+    }
+
+    TaxiToCallCenter chooseBestTaxi(ProcessingQuery pq) throws IOException {
+        TaxiToCallCenter bestTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
+        TaxiToCallCenter thisTaxi;
+        while (!pq.acceptedMessages.isEmpty())
+        {
+            thisTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
+            if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp())
+            {
+                bestTaxi = thisTaxi;
+            }
+        }
+        return bestTaxi;
     }
 
 
@@ -96,7 +111,7 @@ public class CallCenter extends Agent
                                             new LinkedList<>(taxis),
                                             msgI.getSender());
                                     QueriesToProcess.add(pq);
-                                    //activeQueries.put(pq.id, pq);
+                                    activeQueries.put(pq.id, pq);
                                     try {
                                         //We sends info about query to all taxis;
                                         sendQueryToAllTaxis(pq);
@@ -112,7 +127,12 @@ public class CallCenter extends Agent
                                 System.out.println("== Answer" + " <- " + tcc.isIfAccepts());
                                 if (tcc.isIfAccepts()) {
                                     ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
+                                    if(pq == null)
+                                    {
+                                        System.out.println("Takie zapytanie nie istnieje?");
+                                    }
                                     System.out.println("Smtg after this is broken");
+                                    System.out.println(pq.id);
                                     pq.acceptedMessages.add(mesg);
                                     //activeQueries.remove(tcc.getQueryID());
                                     System.out.println("== Answer" + " <- "
@@ -168,15 +188,31 @@ public class CallCenter extends Agent
 
                     }
                 } while ((msgI = receive()) != null);
-
-                if (!QueriesToProcess.isEmpty()) {
-                    ProcessingQuery pq = QueriesToProcess.peek();
-                    if(System.currentTimeMillis() - pq.waitingStartTime > maxWaitingTime)
-                    {
-                        System.out.println("Minelo 5 sekund od danego zapytania");
-                        QueriesToProcess.remove();
+                    if (!QueriesToProcess.isEmpty()) {
+                        TaxiToCallCenter bestTaxi;
+                        ProcessingQuery pq = QueriesToProcess.peek();
+                        if (System.currentTimeMillis() - pq.waitingStartTime > maxWaitingTime) {
+                            try {
+                                bestTaxi = chooseBestTaxi(pq);
+                                System.out.println("Wybralem najszybsza taksowke: " + bestTaxi.getTimeToPickUp());
+                                //Here is creating message to best Taxi that they will have
+                                /*
+                                ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
+                                System.out.println("Informuję taxi o tym, że bierze przejazd:");
+                                System.out.println(msgI.getSender().getName());
+                                confirmTaxi.addReceiver(msgI.getSender());
+                                try {
+                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
+                                    send(confirmTaxi);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                } */
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            QueriesToProcess.remove();
+                        }
                     }
-                }
             }
         });
 
