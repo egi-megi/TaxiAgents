@@ -61,12 +61,13 @@ public class TaxiAgent extends Agent {
 
             //TODO temp
             maximumSpeed = 5;
-            route.add(new Position(2, 80));
-            route.add(new Position(25, 80));
-            route.add(new Position(25, 60));
-            route.add(new Position(14, 60));
-            route.add(new Position(-10, -10));
-            route.add(new Position(20, 20));
+//            route.add(new Position(2, 80));
+//            route.add(new Position(25, 80));
+//            route.add(new Position(25, 60));
+//            route.add(new Position(14, 60));
+//            route.add(new Position(-10, -10));
+//            route.add(new Position(20, 20));
+            route = createRoute(positionTaxiNow, new Position(60, 60));
             isMoving = true;
             long movingDelay = 1000;
 
@@ -125,6 +126,38 @@ public class TaxiAgent extends Agent {
                 e.printStackTrace();
             }
         }
+
+
+    /**
+     * Overloaded method createRoad.
+     * @param startPoint Start of the journey.
+     * @param finishPoint Last point of the journey.
+     * @return The list of points without start point.
+     */
+    List<Position> createRoute(Position startPoint, Position finishPoint) {
+        return createRoute(startPoint, finishPoint, true);
+    }
+
+    /**
+     * Method that creates route from start point to end point. Star point is not included in a route. If start point is
+     * the same as end point, route consist of only one point (end point). Otherwise, it consist of two points: middle
+     * point and finish point. Position of middle point depends on argument isLongitudeFirst. If it is true, middle
+     * point's latitude is the same as start point, longitude same as finish point. If false - otherwise.
+     * @param startPoint Start of the journey.
+     * @param finishPoint Last point of the journey.
+     * @param isLongitudeFirst Tells if travel starts along longitude or latitude.
+     * @return The list of points without start point.
+     */
+    List<Position> createRoute(Position startPoint, Position finishPoint, boolean isLongitudeFirst) {
+        List<Position> result = new ArrayList<>();
+        if(startPoint == finishPoint) result.add(finishPoint);
+        else {
+            if(isLongitudeFirst) result.add(new Position(finishPoint.longitude, startPoint.latitude));
+            else result.add(new Position(startPoint.longitude, finishPoint.latitude));
+            result.add(finishPoint);
+        }
+        return result;
+    }
 
         public static void main(String[] args) throws StaleProxyException, IOException {
             // Get a hold on JADE runtime
