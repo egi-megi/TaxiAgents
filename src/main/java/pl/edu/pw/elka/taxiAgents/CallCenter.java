@@ -98,15 +98,6 @@ public class CallCenter extends Agent
     {
 
         System.out.println("Agent centrali "+getAID().getName()+" jest gotowy.");
-        // Get the longitude of customer
-        /*Object[] args = getArguments();
-        if(args != null && args.length > 0)
-        {longitude = (String) args[0];
-        System.out.println("Położenie klienta: "+longitude);
-        }else{// Make the agent terminate immediately
-             System.out.println("Nie podano położenia klienta");
-             doDelete();
-        }*/
 
         addBehaviour(new CyclicBehaviour(this)
         {

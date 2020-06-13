@@ -1,38 +1,74 @@
 package pl.edu.pw.elka.taxiAgents.messages;
 
+import pl.edu.pw.elka.taxiAgents.Position;
+
 import java.io.Serializable;
 
 public class TaxiToCallCenter implements Serializable {
-    boolean ifAccepts;
-    int taxiPlace;
-    double timeToPickUp;
+
+    Position positionTaxiHome;
+    String kindOFCar;
+    double workingTimeInThisDay;
+    double todayEarnings;
+    int timeFromLastClient;
+
+    double distanceToClient;
+    double timeToPickUpClient;
+    double priceForAllDistance;
+
     String queryID;
 
-    private TaxiToCallCenter(boolean ifAccepts, int taxiPlace, double timeToPickUp, String queryID) {
-        this.ifAccepts = ifAccepts;
-        this.taxiPlace = taxiPlace;
-        this.timeToPickUp = timeToPickUp;
+
+    public TaxiToCallCenter(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID) {
+        this.positionTaxiHome = positionTaxiHome;
+        this.kindOFCar = kindOFCar;
+        this.workingTimeInThisDay = workingTimeInThisDay;
+        this.todayEarnings = todayEarnings;
+        this.timeFromLastClient = timeFromLastClient;
+        this.distanceToClient = distanceToClient;
+        this.timeToPickUpClient = timeToPickUpClient;
+        this.priceForAllDistance = priceForAllDistance;
         this.queryID = queryID;
     }
 
-    public static TaxiToCallCenter accepts(int taxiPlace, double timeToPickUp, String queryID){
-        return new TaxiToCallCenter(true,taxiPlace,timeToPickUp,queryID);
+    public static TaxiToCallCenter accepts(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID){
+        return new TaxiToCallCenter(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, distanceToClient, timeToPickUpClient, priceForAllDistance, queryID);
     }
-    public static TaxiToCallCenter reject(String queryID){
+
+    /*public static TaxiToCallCenter reject(String queryID){
         return  new TaxiToCallCenter(false,-1,-1,queryID);
+    }*/
+
+    public Position getPositionTaxiHome() {
+        return positionTaxiHome;
     }
 
-    public boolean isIfAccepts() {
-        return ifAccepts;
+    public String getKindOFCar() {
+        return kindOFCar;
     }
 
-    public int getTaxiPlace() {
-        return taxiPlace;
+    public double getWorkingTimeInThisDay() {
+        return workingTimeInThisDay;
     }
 
-    public double getTimeToPickUp() {
-        return timeToPickUp;
+    public double getTodayEarnings() {
+        return todayEarnings;
+    }
 
+    public int getTimeFromLastClient() {
+        return timeFromLastClient;
+    }
+
+    public double getDistanceToClient() {
+        return distanceToClient;
+    }
+
+    public double getTimeToPickUpClient() {
+        return timeToPickUpClient;
+    }
+
+    public double getPriceForAllDistance() {
+        return priceForAllDistance;
     }
 
     public String getQueryID() {
