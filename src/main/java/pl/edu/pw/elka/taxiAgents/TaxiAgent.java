@@ -4,7 +4,6 @@ import jade.core.*;
 import jade.core.Runtime;
 import jade.core.behaviours.*;
 
-import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
 import jade.lang.acl.*;
@@ -16,6 +15,8 @@ import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
 import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaxiAgent extends Agent {
 
@@ -33,8 +34,10 @@ public class TaxiAgent extends Agent {
     double todayEarnings;
     int timeFromLastClient;
     double timeToEndOrder = 0;
-    double speed = 0;
+    double maximumSpeed = 0; ///< points per seconds
 
+    boolean isMoving = false; ///< specifies if taxi is moving
+    List<Position> route = new ArrayList<>(); ///< remaining route to destination
 
 
         void setupFromArgs(Object[] taxisData) {
@@ -55,6 +58,19 @@ public class TaxiAgent extends Agent {
         protected void setup()
         {
             setupFromArgs(getArguments());
+
+            //TODO temp
+            maximumSpeed = 5;
+            route.add(new Position(2, 80));
+            route.add(new Position(25, 80));
+            route.add(new Position(25, 60));
+            route.add(new Position(14, 60));
+            route.add(new Position(-10, -10));
+            route.add(new Position(20, 20));
+            isMoving = true;
+            long movingDelay = 1000;
+
+            addBehaviour(new MovementBehaviour(this, movingDelay));
 
             addBehaviour(new CyclicBehaviour(this)
             {
@@ -108,7 +124,6 @@ public class TaxiAgent extends Agent {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//coinnego
         }
 
         public static void main(String[] args) throws StaleProxyException, IOException {
@@ -123,20 +138,23 @@ public class TaxiAgent extends Agent {
             // and pass it a reference to an Object
 
             Object[][] taxisData = new Object[][]{
-                    {new Position(22, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(12, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(42, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(52, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(22, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(12, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(42, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(52, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
+//                    {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
                     {new Position(2, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40}};
             //Object reference = new Object();
            // Object aargs[] = new Object[1];
             //aargs[0]=reference;
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1; i++) {
+                try{
+                    Thread.sleep(2);
+                } catch (Exception e) {}
                 AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
 
 
@@ -144,4 +162,76 @@ public class TaxiAgent extends Agent {
                 dummy.start();
             }
         }
+
+    /** \class MovementBehaviour
+     * \brief Class that is responsible for taxi movement. Taxi moves along given route. Route contains of points which
+     * taxi is expected to reach. Taxi travels directly to the next point (along a line connecting current position and
+     * the next point. When last point is reached, variable isMoving is set to false.
+     * During the travel, points are being consequently removed from route.
+     */
+    class MovementBehaviour extends CyclicBehaviour
+    {
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
+        long previousActionTime = 0; ///< specifies time of last invocation of action; 0 if taxi has been not moving
+        double speedInPointsPerMs = maximumSpeed / 1000; ///< speed but in points on the map per millisecond
+
+        public MovementBehaviour(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            if(!isMoving || route.isEmpty()) { // if not moving or nowhere to go - do nothing
+                previousActionTime = 0;
+                block(delay); //TODO może da się tu zrobić oczekiwanie na wiadomość
+                return;
+            }
+
+            long currentTime = System.currentTimeMillis();
+            if(previousActionTime != 0) { // if previous time == 0 there is nothing to calculate
+                long millisecondsPassed = currentTime - previousActionTime;
+                double quantumOfTraveledDistance = speedInPointsPerMs * millisecondsPassed;
+                double distanceToNextPoint = distanceBetweenTwoPoints(route.get(0), positionTaxiNow);
+                if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
+                    positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
+                    positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
+                    System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
+
+                }
+                else {
+                    positionTaxiNow = route.get(0);
+                    route.remove(0);
+                    System.out.println(" - " + myAgent.getLocalName() + " point reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
+                    if (route.isEmpty()) {
+                        destinationReached();
+                        previousActionTime = 0;
+                        block(delay);
+                        return;
+                    }
+                }
+            }
+            previousActionTime = currentTime;
+            block(delay);
+        }
+
+        /**
+         * Method calculates distance between two points
+         * @param point1 First point
+         * @param point2 Second point
+         * @return distance between points.
+         */
+        double distanceBetweenTwoPoints(Position point1, Position point2) {
+            return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
+        }
+
+        /**
+         * Method invoked when destination is reached. It stops movement, resets previousActionTime, and informs others about the event
+         */
+        void destinationReached() { //TODO kogo informować?
+            isMoving = false;
+            previousActionTime = 0;
+            System.out.println(" - " + myAgent.getLocalName() + " destination reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
+        }
     }
+}
+
