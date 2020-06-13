@@ -173,9 +173,7 @@ public class CallCenter extends Agent
                                     e.printStackTrace();
                                 } */
                                 }
-
                             }
-
                             if (mesg instanceof TaxiRegister) {
                                 taxis.add(msgI.getSender());
                                 System.out.println("Rejestruje taksówkę " + msgI.getSender().getName());
@@ -185,9 +183,9 @@ public class CallCenter extends Agent
                             e.printStackTrace();
                         }
 
-
                     }
                 } while ((msgI = receive()) != null);
+
                     if (!QueriesToProcess.isEmpty()) {
                         TaxiToCallCenter bestTaxi;
                         ProcessingQuery pq = QueriesToProcess.peek();
