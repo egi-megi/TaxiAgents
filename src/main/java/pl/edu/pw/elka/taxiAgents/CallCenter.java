@@ -73,7 +73,7 @@ public class CallCenter extends Agent
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                         }
-                        if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp()) {
+                        if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()) {
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                         }
@@ -135,8 +135,7 @@ public class CallCenter extends Agent
                             if (mesg instanceof TaxiToCallCenter) {
                                 System.out.println("Taxi to callcenter");
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
-                                System.out.println("== Answer" + " <- " + tcc.isIfAccepts());
-                                if (tcc.isIfAccepts()) {
+                                System.out.println("== Answer" + " <- " );
                                     System.out.println("I've got message from Taxi");
                                     ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                     if(pq == null)
@@ -147,8 +146,8 @@ public class CallCenter extends Agent
                                     pq.acceptedMessages.put(msgI.getSender().getName(), msgI);
                                     //activeQueries.remove(tcc.getQueryID());
                                     System.out.println("== Answer" + " <- "
-                                            + tcc.getTimeToPickUp() + " from "
-                                            + tcc.getTaxiPlace() + msgI.getSender().getName());
+                                            + tcc.getTimeToPickUpClient() + " from "
+                                            + msgI.getSender().getName());
                             /*
                                 ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
                                 System.out.println("Informuję taxi o tym, że bierze przejazd:");
@@ -184,7 +183,7 @@ public class CallCenter extends Agent
                                     e.printStackTrace();
                                 } */
                                 }
-                            }
+
                             if (mesg instanceof TaxiRegister) {
                                 taxis.add(msgI.getSender());
                                 System.out.println("Rejestruje taksówkę " + msgI.getSender().getName());
