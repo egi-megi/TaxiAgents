@@ -20,7 +20,8 @@ public class CallCenter extends Agent
         String id;
         CallTaxi query;
         Queue<AID> taxisToCheck;
-        Queue<Object> acceptedMessages;
+        //Queue<Object> acceptedMessages;
+        Map<String, ACLMessage> acceptedMessages;
         AID customer;
         long waitingStartTime;
 
@@ -30,7 +31,7 @@ public class CallCenter extends Agent
             this.taxisToCheck = taxisToCheck;
             this.customer = customer;
             this.waitingStartTime = System.currentTimeMillis();
-            this.acceptedMessages = new LinkedList<>();
+            this.acceptedMessages = new HashMap<>();
         }
     }
     static long maxWaitingTime = 5000L;
@@ -58,22 +59,41 @@ public class CallCenter extends Agent
             send(mesg);
     }
 
-    TaxiToCallCenter chooseBestTaxi(ProcessingQuery pq) throws IOException {
-        TaxiToCallCenter bestTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
-        TaxiToCallCenter thisTaxi;
-        while (!pq.acceptedMessages.isEmpty())
-        {
-            thisTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
-            if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp())
-            {
-                bestTaxi = thisTaxi;
+    ACLMessage chooseBestTaxi(ProcessingQuery pq) throws IOException {
+            TaxiToCallCenter bestTaxi = null;
+            TaxiToCallCenter thisTaxi;
+            ACLMessage bestTaxiMessage = null;
+            Object thisMesg;
+            try{
+                if(!pq.acceptedMessages.isEmpty()){
+                    for (Map.Entry<String, ACLMessage> entry : pq.acceptedMessages.entrySet()) {
+                        thisMesg = entry.getValue().getContentObject();
+                        thisTaxi = (TaxiToCallCenter) thisMesg;
+                        if (bestTaxi == null) {
+                            bestTaxi = thisTaxi;
+                            bestTaxiMessage = entry.getValue();
+                        }
+                        if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp()) {
+                            bestTaxi = thisTaxi;
+                            bestTaxiMessage = entry.getValue();
+                        }
+                    }
+                }
+        } catch (UnreadableException e) {
+                e.printStackTrace();
             }
-        }
-        return bestTaxi;
+        return bestTaxiMessage;
     }
 
 
-    //TODO: dodawac do nie j na podstawie wiadomosci2
+    //TODO  while (!pq.acceptedMessages.isEmpty())
+    //        {
+    //            thisTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
+    //            if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp())
+    //            {
+    //                bestTaxi = thisTaxi;
+    //            }
+    //        }: dodawac do nie j na podstawie wiadomosci2
     protected void setup()
     {
 
@@ -126,14 +146,14 @@ public class CallCenter extends Agent
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
                                 System.out.println("== Answer" + " <- " + tcc.isIfAccepts());
                                 if (tcc.isIfAccepts()) {
+                                    System.out.println("I've got message from Taxi");
                                     ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                     if(pq == null)
                                     {
                                         System.out.println("Takie zapytanie nie istnieje?");
                                     }
-                                    System.out.println("Smtg after this is broken");
                                     System.out.println(pq.id);
-                                    pq.acceptedMessages.add(mesg);
+                                    pq.acceptedMessages.put(msgI.getSender().getName(), msgI);
                                     //activeQueries.remove(tcc.getQueryID());
                                     System.out.println("== Answer" + " <- "
                                             + tcc.getTimeToPickUp() + " from "
@@ -187,12 +207,35 @@ public class CallCenter extends Agent
                 } while ((msgI = receive()) != null);
 
                     if (!QueriesToProcess.isEmpty()) {
-                        TaxiToCallCenter bestTaxi;
+                        ACLMessage bestTaxi;
                         ProcessingQuery pq = QueriesToProcess.peek();
                         if (System.currentTimeMillis() - pq.waitingStartTime > maxWaitingTime) {
                             try {
                                 bestTaxi = chooseBestTaxi(pq);
-                                System.out.println("Wybralem najszybsza taksowke: " + bestTaxi.getTimeToPickUp());
+                                if (bestTaxi != null) {
+                                    System.out.println("Wybralem najszybsza taksowke: ");
+                                    ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
+                                    confirmTaxi.addReceiver(bestTaxi.getSender());
+                                    try {
+                                        confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
+                                        send(confirmTaxi);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    QueriesToProcess.remove();
+                                }
+                                else {
+                                    System.out.println("Brak taksówek - proszę czekać");
+                                    try {
+                                        //We sends info about query to all taxis;
+                                        sendQueryToAllTaxis(pq);
+                                        System.out.println("We've just send info to all taxis ");
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    pq.waitingStartTime = System.currentTimeMillis();
+                                    QueriesToProcess.add(QueriesToProcess.poll());
+                                }
                                 //Here is creating message to best Taxi that they will have
                                 /*
                                 ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
@@ -208,7 +251,6 @@ public class CallCenter extends Agent
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            QueriesToProcess.remove();
                         }
                     }
             }
