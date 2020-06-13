@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+
+
+
 public class CallCenter extends Agent
 {
 
@@ -20,6 +24,7 @@ public class CallCenter extends Agent
         String id;
         CallTaxi query;
         Queue<AID> taxisToCheck;
+        Queue<Object> acceptedMessages = new LinkedList<>();
         AID customer;
 
         public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer) {
@@ -100,6 +105,7 @@ public class CallCenter extends Agent
                             System.out.println("== Answer" + " <- "+tcc.isIfAccepts());
                             if (tcc.isIfAccepts()) {
                                 ProcessingQuery pq=activeQueries.get(tcc.getQueryID());
+                                pq.acceptedMessages.add(mesg);
                                 activeQueries.remove(tcc.getQueryID());
                                 System.out.println("== Answer" + " <- "
                                         + tcc.getTimeToPickUp() + " from "
