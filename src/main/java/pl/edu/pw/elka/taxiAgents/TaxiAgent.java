@@ -4,7 +4,6 @@ import jade.core.*;
 import jade.core.Runtime;
 import jade.core.behaviours.*;
 
-import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
 import jade.lang.acl.*;
@@ -16,6 +15,8 @@ import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
 import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaxiAgent extends Agent {
 
@@ -33,8 +34,10 @@ public class TaxiAgent extends Agent {
     double todayEarnings;
     int timeFromLastClient;
     double timeToEndOrder = 0;
-    double speed = 0;
+    double maximumSpeed = 0;
 
+    boolean isMoving = false; ///< specifies if taxi is moving
+    List<Position> route = new ArrayList<>(); ///< remaining route to destination
 
 
         void setupFromArgs(Object[] taxisData) {
@@ -108,7 +111,6 @@ public class TaxiAgent extends Agent {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//coinnego
         }
 
         public static void main(String[] args) throws StaleProxyException, IOException {
@@ -137,6 +139,9 @@ public class TaxiAgent extends Agent {
            // Object aargs[] = new Object[1];
             //aargs[0]=reference;
             for (int i = 0; i < 10; i++) {
+                try{
+                    Thread.sleep(2);
+                } catch (Exception e) {}
                 AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
 
 
@@ -144,4 +149,59 @@ public class TaxiAgent extends Agent {
                 dummy.start();
             }
         }
+
+    class MovementBehaviour extends CyclicBehaviour
+    {
+        long delay; ///< specifies time between invocations of action method (in miliseconds)
+        long previousActionTime = 0; ///< specifies time of last invocation of action; 0 if taxi has been not moving
+        double speedInPointsPerMs = maximumSpeed; ///< speed but in points on the map per millisecond
+
+        public MovementBehaviour(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            if(!isMoving || route.isEmpty()) { // if not moving or nowhere to go - do nothing
+                previousActionTime = 0;
+                block(delay); //TODO może da się tu zrobić oczekiwanie na wiadomość
+                return;
+            }
+
+
+
+            long currentTime = System.currentTimeMillis();
+            if(previousActionTime != 0) { // if previous time == 0 there is nothing to calculate
+                long millisecondsPassed = currentTime - previousActionTime;
+                double quantumOfTraveledDistance = speedInPointsPerMs * millisecondsPassed;
+                double distanceToNextPoint = distanceBetweenTwoPoints(route.get(0), positionTaxiNow);
+                if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
+                    positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
+                    positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
+                }
+                else {
+                    positionTaxiNow = route.get(0);
+                    route.remove(0);
+                    if (route.isEmpty()) {
+                        destinationReached();
+                        previousActionTime = 0;
+                        block(delay);
+                        return;
+                    }
+                }
+            }
+            previousActionTime = currentTime;
+            block(delay);
+        }
+
+        double distanceBetweenTwoPoints(Position point1, Position point2) {
+            return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
+        }
+
+        void destinationReached() { //TODO kogo informować?
+            isMoving = false;
+            previousActionTime = 0;
+        }
     }
+}
+
