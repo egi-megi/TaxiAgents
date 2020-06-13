@@ -127,6 +127,33 @@ public class TaxiAgent extends Agent {
             }
         }
 
+    /**
+     * Method calculates distance between two points
+     * @param point1 First point
+     * @param point2 Second point
+     * @return distance between points.
+     */
+    double distanceBetweenTwoPoints(Position point1, Position point2) {
+        return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
+    }
+
+    /**
+     * Method that calculates time required to travel along given route.
+     * @param startPoint First point of the route.
+     * @param nextPoints Remaining part of the route.
+     * @return Time in seconds, required to travel from start to end.
+     */
+    long calculateRouteTime(Position startPoint, List<Position> nextPoints) {
+        if(maximumSpeed == 0) return Long.MAX_VALUE;
+        long result = 0;
+        Position currentPoint = startPoint;
+        for(Position nextPoint: nextPoints) {
+            double sectionLength = distanceBetweenTwoPoints(currentPoint, nextPoint);
+            result = result + (long)(sectionLength / maximumSpeed);
+            currentPoint = nextPoint;
+        }
+        return result;
+    }
 
     /**
      * Overloaded method createRoad.
@@ -228,7 +255,8 @@ public class TaxiAgent extends Agent {
                 if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
                     positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
                     positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
-                    System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
+                    System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude + " remaining time: " +
+                            calculateRouteTime(positionTaxiNow, route) + " seconds");
 
                 }
                 else {
@@ -245,16 +273,6 @@ public class TaxiAgent extends Agent {
             }
             previousActionTime = currentTime;
             block(delay);
-        }
-
-        /**
-         * Method calculates distance between two points
-         * @param point1 First point
-         * @param point2 Second point
-         * @return distance between points.
-         */
-        double distanceBetweenTwoPoints(Position point1, Position point2) {
-            return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
         }
 
         /**
