@@ -46,6 +46,8 @@ public class DisplayAgent extends Agent {
                 System.exit(0);
             }
         });
+
+        addBehaviour(new Receiver(this));
     }
 
     public static void main(String[] args) throws StaleProxyException, IOException {
@@ -155,6 +157,7 @@ public class DisplayAgent extends Agent {
         public Position position;
         public List<Position> route;
         boolean isWithClient;
+        long lastMessageTime = 0;
 
         public TaxiData() {}
         public TaxiData(String id, String status, Position position, List<Position> route, boolean isWithClient) {
@@ -176,6 +179,38 @@ public class DisplayAgent extends Agent {
             this.id = id;
             this.position = position;
             this.isTaxiAssigned = isTaxiAssigned;
+        }
+    }
+
+    class Receiver extends CyclicBehaviour {
+        public Receiver(Agent a) {
+            super(a);
+        }
+        public void action() {
+            ACLMessage msgI = receive();
+            if(msgI != null) {
+                try {
+                    Object msg = msgI.getContentObject();
+                    if(msg instanceof TaxiStatus) {
+                        TaxiStatus status = (TaxiStatus) msg;
+                        TaxiData taxiInfo = new TaxiData(msgI.getSender().getLocalName(), status.status, status.position, status.route, status.isWithClient);
+                        taxiInfo.lastMessageTime = System.currentTimeMillis();
+                        boolean taxiFound = false;
+                        for(TaxiData taxi : taxis) {
+                            if(taxi.id.equals(taxiInfo.id)) {
+                                taxi = taxiInfo;
+                                taxiFound = true;
+                                break;
+                            }
+                        }
+                        if(!taxiFound) taxis.add(taxiInfo);
+                        window.repaint();
+                    }
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+            }
+            block();
         }
     }
 }
