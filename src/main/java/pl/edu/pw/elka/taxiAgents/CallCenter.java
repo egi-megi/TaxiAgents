@@ -35,6 +35,7 @@ public class CallCenter extends Agent
         }
     }
     static long maxWaitingTime = 5000L;
+    static double maxLongerWaitingTime = 100d;
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
@@ -64,6 +65,8 @@ public class CallCenter extends Agent
         TaxiToCallCenter thisTaxi;
         ACLMessage bestTaxiMessage = null;
         Object thisMesg;
+        double shortestTime = Double.MAX_VALUE;
+        double thisTaxiMeanIncome, bestTaxiMeanIncome = 0;
         try{
             if(!pq.acceptedMessages.isEmpty()){
                 for (Map.Entry<String, ACLMessage> entry : pq.acceptedMessages.entrySet()) {
@@ -72,10 +75,24 @@ public class CallCenter extends Agent
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        bestTaxiMeanIncome = bestTaxi.getTodayEarnings()/bestTaxi.getWorkingTimeInThisDay();
                     }
-                    if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()) {
+                    if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
+                        shortestTime = thisTaxi.getTimeToPickUpClient(); }
+
+                    thisTaxiMeanIncome = thisTaxi.getTodayEarnings()/thisTaxi.getWorkingTimeInThisDay();
+                    if (thisTaxiMeanIncome < bestTaxiMeanIncome)
+                    {
+                        if (thisTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime)
+                        {
+                            bestTaxi = thisTaxi;
+                            bestTaxiMessage = entry.getValue();
+                            bestTaxiMeanIncome = thisTaxiMeanIncome;
+                        }
+                    } else if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()){
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        bestTaxiMeanIncome = thisTaxiMeanIncome;
                     }
                 }
             }
@@ -135,12 +152,11 @@ public class CallCenter extends Agent
                             if (mesg instanceof TaxiToCallCenter) {
                                 System.out.println("Taxi to callcenter");
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
-                                System.out.println("== Answer" + " <- " );
-                                System.out.println("I've got message from Taxi");
                                 ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                 if(pq == null)
                                 {
                                     System.out.println("Takie zapytanie nie istnieje?");
+                                    break;
                                 }
                                 System.out.println(pq.id);
                                 pq.acceptedMessages.put(msgI.getSender().getName(), msgI);
@@ -148,38 +164,21 @@ public class CallCenter extends Agent
                                 System.out.println("== Answer" + " <- "
                                         + tcc.getTimeToPickUpClient() + " from "
                                         + msgI.getSender().getName());
-                            /*
-                                ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
-                                System.out.println("Informuję taxi o tym, że bierze przejazd:");
-                                System.out.println(msgI.getSender().getName());
-                                confirmTaxi.addReceiver(msgI.getSender());
-                                try {
-                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
-                                    send(confirmTaxi);
-                                } catch(IOException e) {
-                                    e.printStackTrace();
+                            }
+
+                            if (mesg instanceof TaxiConfirmTakingOrder)
+                            {
+                                TaxiConfirmTakingOrder tco = (TaxiConfirmTakingOrder) mesg;
+                                if(tco.isIfTake())
+                                {
+                                    System.out.println("Great - taxi is realizing query NO: "+tco.getIdQuery());
                                 }
-                                ACLMessage register=new ACLMessage(ACLMessage.INFORM);
-                                register.addReceiver(pq.customer);
-                                try {
-                                    register.setContentObject(new CallCenterToClient(msgI.getSender().getName(), tcc.getTimeToPickUp()));
-                                    send(register);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                else {
+                                    System.out.println("Ooops! Specific taxi cannot handle this order");
+                                    ProcessingQuery pq = activeQueries.get(tco.getIdQuery());
+                                    pq.acceptedMessages.remove(msgI.getSender().getName());
+                                    QueriesToProcess.add(pq);
                                 }
-                                /**ACLMessage rmesg=new ACLMessage(ACLMessage.INFORM);
-                                rmesg.setContent(tcc.getTimeToPickUp() + " from "
-                                        + tcc.getTaxiPlace() + msgI.getSender().getName());
-                                rmesg.addReceiver(pq.customer);
-                                send(rmesg);**/
-                                /*
-                            } else {
-                                try {
-                                    sendQueryToNextTaxi(activeQueries.get(tcc.getQueryID()));
-                                    //System.out.println("Szukalem nastepnej taksowki");
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } */
                             }
 
                             if (mesg instanceof TaxiRegister) {
