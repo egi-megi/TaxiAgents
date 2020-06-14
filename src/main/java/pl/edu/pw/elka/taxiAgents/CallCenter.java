@@ -105,7 +105,16 @@ public class CallCenter extends Agent
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
                             pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         }
-                    } else if ( bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
+                    } else if (bestTaxiMeanIncome == thisTaxiMeanIncome)
+                        {
+                            if (bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
+                                bestTaxi = thisTaxi;
+                                bestTaxiMessage = entry.getValue();
+                                bestTaxiMeanIncome = thisTaxiMeanIncome;
+                                pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
+                            }
+                        }
+                        else if ( bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
                         if (bestTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime) {
 
                         } else {
