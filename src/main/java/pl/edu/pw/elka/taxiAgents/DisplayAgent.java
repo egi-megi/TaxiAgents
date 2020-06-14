@@ -93,12 +93,12 @@ public class DisplayAgent extends Agent {
 //                    new TaxiData("Taxi6", TaxiAgent.DRIVER_STATUS_FREE, new Position(700, 50),Collections.emptyList(), false)
 //            ));
 
-            clients.addAll(Arrays.asList(
-                    new ClientData("Client1", new Position(30, 90), false),
-                    new ClientData("Client2", new Position(150, 290),true),
-                    new ClientData("Client3", new Position(10, 870), false),
-                    new ClientData("Client4", new Position(800, 20), true)
-            ));
+//            clients.addAll(Arrays.asList(
+//                    new ClientData("Client1", new Position(30, 90), false),
+//                    new ClientData("Client2", new Position(150, 290),true),
+//                    new ClientData("Client3", new Position(10, 870), false),
+//                    new ClientData("Client4", new Position(800, 20), true)
+//            ));
 
             for(TaxiData taxi : taxis) {
                 g2.setColor(chooseColor(taxi));
