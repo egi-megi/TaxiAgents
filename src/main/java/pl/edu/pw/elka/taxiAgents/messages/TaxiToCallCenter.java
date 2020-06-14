@@ -11,6 +11,7 @@ public class TaxiToCallCenter implements Serializable {
     double workingTimeInThisDay;
     double todayEarnings;
     int timeFromLastClient;
+    String driverStatus;
 
     double distanceToClient;
     double timeToPickUpClient;
@@ -18,21 +19,21 @@ public class TaxiToCallCenter implements Serializable {
 
     String queryID;
 
-
-    public TaxiToCallCenter(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID) {
+    public TaxiToCallCenter(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, String driverStatus, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID) {
         this.positionTaxiHome = positionTaxiHome;
         this.kindOFCar = kindOFCar;
         this.workingTimeInThisDay = workingTimeInThisDay;
         this.todayEarnings = todayEarnings;
         this.timeFromLastClient = timeFromLastClient;
+        this.driverStatus = driverStatus;
         this.distanceToClient = distanceToClient;
         this.timeToPickUpClient = timeToPickUpClient;
         this.priceForAllDistance = priceForAllDistance;
         this.queryID = queryID;
     }
 
-    public static TaxiToCallCenter accepts(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID){
-        return new TaxiToCallCenter(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, distanceToClient, timeToPickUpClient, priceForAllDistance, queryID);
+    public static TaxiToCallCenter accepts(Position positionTaxiHome, String kindOFCar, double workingTimeInThisDay, double todayEarnings, int timeFromLastClient, String driverStatus, double distanceToClient, double timeToPickUpClient, double priceForAllDistance, String queryID){
+        return new TaxiToCallCenter(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, driverStatus, distanceToClient, timeToPickUpClient, priceForAllDistance, queryID);
     }
 
     /*public static TaxiToCallCenter reject(String queryID){

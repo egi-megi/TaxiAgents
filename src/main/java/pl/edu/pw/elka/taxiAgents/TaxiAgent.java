@@ -201,7 +201,7 @@ public class TaxiAgent extends Agent {
                                     distanceWithClient = computeDistance(cct.getFrom(), cct.getTo());
                                     priceForAllDistance = computePrice(distanceWithClient, cct.getKindOfClient());
                                     TaxiToCallCenter response;
-                                    response = TaxiToCallCenter.accepts(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, distanceToClient, timeToPickUpClient, priceForAllDistance, cct.getIdQuery());
+                                    response = TaxiToCallCenter.accepts(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, driverStatus, distanceToClient, timeToPickUpClient, priceForAllDistance, cct.getIdQuery());
                                     ACLMessage reply = msg.createReply();
                                     reply.setPerformative(ACLMessage.INFORM);
                                     reply.setContentObject(response);
