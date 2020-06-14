@@ -35,6 +35,7 @@ public class CallCenter extends Agent
         }
     }
     static long maxWaitingTime = 5000L;
+    static double maxLongerWaitingTime = 100d;
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
@@ -64,6 +65,8 @@ public class CallCenter extends Agent
         TaxiToCallCenter thisTaxi;
         ACLMessage bestTaxiMessage = null;
         Object thisMesg;
+        double shortestTime = Double.MAX_VALUE;
+        double thisTaxiMeanIncome, bestTaxiMeanIncome = 0;
         try{
             if(!pq.acceptedMessages.isEmpty()){
                 for (Map.Entry<String, ACLMessage> entry : pq.acceptedMessages.entrySet()) {
@@ -72,10 +75,24 @@ public class CallCenter extends Agent
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        bestTaxiMeanIncome = bestTaxi.getTodayEarnings()/bestTaxi.getWorkingTimeInThisDay();
                     }
-                    if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()) {
+                    if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
+                        shortestTime = thisTaxi.getTimeToPickUpClient(); }
+
+                    thisTaxiMeanIncome = thisTaxi.getTodayEarnings()/thisTaxi.getWorkingTimeInThisDay();
+                    if (thisTaxiMeanIncome < bestTaxiMeanIncome)
+                    {
+                        if (thisTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime)
+                        {
+                            bestTaxi = thisTaxi;
+                            bestTaxiMessage = entry.getValue();
+                            bestTaxiMeanIncome = thisTaxiMeanIncome;
+                        }
+                    } else if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()){
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        bestTaxiMeanIncome = thisTaxiMeanIncome;
                     }
                 }
             }
