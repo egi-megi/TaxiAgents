@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Thread.*;
-
 public class TaxiAgent extends Agent {
 
     final String KIND_OF_CARS_VAN = "van";
@@ -34,10 +32,10 @@ public class TaxiAgent extends Agent {
 
     Position positionTaxiNow;
     Position positionTaxiHome;
+
     boolean ifBabySeat;
     boolean ifHomePet;
     String kindOFCar;
-    //enum kindOFCar {sedan, combi, van, vip};
     int numberOFPassengers;
     boolean ifStandByForSpecialTask;
     boolean ifExperiencedDriver;
@@ -46,12 +44,16 @@ public class TaxiAgent extends Agent {
     double todayEarnings;
     int timeFromLastClient;
     double timeToEndOrder = 0;
+    int workingTime; // time in seconds
+
+    long endWorkingTime; // time in milisec
 
     double maximumSpeed = 0; ///< points per second
     double distanceToClient;
     double distanceWithClient;
     double timeToPickUpClient;
     double priceForAllDistance;
+    double timeWithClient;
 
 
     boolean isRidingWithClient = false; ///< specifies if client is in a taxi
@@ -74,6 +76,7 @@ public class TaxiAgent extends Agent {
         todayEarnings = (int) taxisData[10];
         timeFromLastClient = (int) taxisData[11];
         timeToEndOrder = (int) taxisData[12];
+        workingTime = (int) taxisData[13];
     }
 
     boolean isMissingBabySeat(CallCenterToTaxi cct) {
@@ -96,42 +99,51 @@ public class TaxiAgent extends Agent {
         return cct.getNumberOFPassengers() > numberOFPassengers;
     }
 
-    boolean notWorkingDriver() {
-        return driverStatus.equalsIgnoreCase(DRIVER_STATUS_BREAK) || driverStatus.equalsIgnoreCase(DRIVER_STATUS_UNAVAILABLE) || driverStatus.equalsIgnoreCase(DRIVER_STATUS_VEHICLE_BREAKDOWN);
+    boolean canNotTakeOrderDriverStatus() {
+        return driverStatus.equalsIgnoreCase(DRIVER_STATUS_BREAK) || driverStatus.equalsIgnoreCase(DRIVER_STATUS_UNAVAILABLE) || driverStatus.equalsIgnoreCase(DRIVER_STATUS_VEHICLE_BREAKDOWN) || driverStatus.equalsIgnoreCase(DRIVER_STATUS_WORKING);
     }
 
-    double computeDistance(CallCenterToTaxi cct) {
+    /*double computeDistance(CallCenterToTaxi cct) {
         distanceToClient = (Math.abs(positionTaxiNow.longitude - cct.getTo().getLongitude()) + Math.abs(positionTaxiNow.latitude - cct.getTo().getLatitude())) * 0.01;
         return distanceToClient;
-    }
-
-    /*double computeDistance(Position pFrom, Position pTo) {
-        return (Math.abs(pFrom.longitude - pTo.longitude) + Math.abs(pFrom.latitude - pTo.latitude)) * 0.001;
     }*/
 
-    double computeTime(CallCenterToTaxi cct) {
+    double computeDistance(Position pFrom, Position pTo) {
+        return (Math.abs(pFrom.longitude - pTo.longitude) + Math.abs(pFrom.latitude - pTo.latitude));
+    }
+
+    double computeTime(double distance) {
         double avarageDriverSpeed;
         if (ifExperiencedDriver) {
             avarageDriverSpeed = 40.0;
         } else {
             avarageDriverSpeed = 30.0;
         }
-        timeToPickUpClient = (distanceToClient / avarageDriverSpeed) + timeToEndOrder;
-        return timeToPickUpClient;
+        return (distance / avarageDriverSpeed) + timeToEndOrder;
+    }
+
+    double computeTimeWithTimeToEndOrder(double distance) {
+        return computeTime(distance) + timeToEndOrder;
     }
 
 
-    double computePrice(CallCenterToTaxi cct) {
+    double computePrice(double distance, String kindOfClient) {
         double pricePerKilometer;
-        if (cct.getKindOfClient().equalsIgnoreCase("vip")) {
+        if (kindOfClient.equalsIgnoreCase("vip")) {
             pricePerKilometer = 2.3;
-        } else if (cct.getKindOfClient().equalsIgnoreCase("korpo")) {
+        } else if (kindOfClient.equalsIgnoreCase("korpo")) {
             pricePerKilometer = 2.5;
         } else {
             pricePerKilometer = 3.0;
         }
-        priceForAllDistance = distanceToClient * pricePerKilometer;
+        priceForAllDistance = distance * pricePerKilometer;
             return priceForAllDistance;
+    }
+
+    long computeTimeToGoHome(long workingTime) {
+        long currentTime = System.currentTimeMillis();
+        endWorkingTime = currentTime + workingTime*1000;
+        return endWorkingTime;
     }
 
     protected void setup() {
@@ -167,27 +179,30 @@ public class TaxiAgent extends Agent {
                         Object o = msg.getContentObject();
                         if (o instanceof CallCenterToTaxi) {
                             CallCenterToTaxi cct = (CallCenterToTaxi) o;
-                            int fromLongitudeCustomer = cct.getFrom().getLongitude();
-                            //TaxiToCallCenter response;
-
                             if (isMissingBabySeat(cct) ||
                                     canNotTakePet(cct) ||
                                     tooMuchPassengers(cct) ||
                                     canNotTakeLuggage(cct) ||
-                                    notWorkingDriver()
+                                    canNotTakeOrderDriverStatus()
                             ) {
                                 //response = TaxiToCallCenter.reject(cct.getIdQuery());
                             } else {
-                                computeDistance(cct);
+                                distanceToClient = computeDistance(positionTaxiNow, cct.getFrom());
                                 if (distanceToClient > 200 && ifStandByForSpecialTask == false) {
                                     //response = TaxiToCallCenter.reject(cct.getIdQuery());
                                 } else {
-                                    computeTime(cct);
-                                    computePrice(cct);
+                                    long leftTimeToGoHome = (endWorkingTime - System.currentTimeMillis()) / 1000;
+                                    if (leftTimeToGoHome < 30) {
+                                        driverStatus.equalsIgnoreCase(DRIVER_STATUS_GOES_HOME);
+                                    }
+                                    if (leftTimeToGoHome <= 0) {
+                                        driverStatus.equalsIgnoreCase(DRIVER_STATUS_UNAVAILABLE);
+                                    }
+                                    timeToPickUpClient = computeTimeWithTimeToEndOrder(distanceToClient);
+                                    distanceWithClient = computeDistance(cct.getFrom(), cct.getTo());
+                                    priceForAllDistance = computePrice(distanceWithClient, cct.getKindOfClient());
                                     TaxiToCallCenter response;
                                     response = TaxiToCallCenter.accepts(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, distanceToClient, timeToPickUpClient, priceForAllDistance, cct.getIdQuery());
-                                    System.out.println(" - " +
-                                            myAgent.getLocalName() + " odbierze klienta za: " + timeToPickUpClient + " min.");
                                     ACLMessage reply = msg.createReply();
                                     reply.setPerformative(ACLMessage.INFORM);
                                     reply.setContentObject(response);
@@ -195,11 +210,9 @@ public class TaxiAgent extends Agent {
                                 }
                             }
 
-
                         }
 
                         if (o instanceof CallCenterConfirmTaxi) {
-                            System.out.println("Taxi has got confirmation of drive");
                             CallCenterConfirmTaxi ccct = (CallCenterConfirmTaxi) o;
                             TaxiConfirmTakingOrder response;
                             if (driverStatus.equalsIgnoreCase("free") || driverStatus.equalsIgnoreCase("nearEnd") || driverStatus.equalsIgnoreCase("goesHome")) {
@@ -211,9 +224,16 @@ public class TaxiAgent extends Agent {
                             reply.setPerformative(ACLMessage.INFORM);
                             reply.setContentObject(response);
                             send(reply);
-                            clientDestination = ccct.getTo();
+                            distanceToClient = computeDistance(positionTaxiNow, ccct.getFrom());
+                            timeToPickUpClient = computeTimeWithTimeToEndOrder(distanceToClient);
+                            distanceWithClient = computeDistance(ccct.getFrom(), ccct.getTo());
+                            timeWithClient = computeTime(distanceWithClient);
+                            priceForAllDistance = computePrice(distanceWithClient, ccct.getKindOfClient());
+                            workingTimeInThisDay = workingTimeInThisDay + timeToPickUpClient + timeWithClient - timeToEndOrder;
+                            todayEarnings = todayEarnings + priceForAllDistance;
                             clientStartPoint = ccct.getFrom();
-                            System.out.println("Taksówka ostatecznie potwierdza zabranie klienta " + ccct.getIdQuery() + ".");
+                            clientDestination = ccct.getTo();
+                            System.out.println("Taksówka ostatecznie potwierdza zabranie klienta " + ccct.getIdQuery() + ". Podjedzie po niego za " + timeToPickUpClient + " sekund.");
                         }
                     } catch (UnreadableException | IOException e) {
                         e.printStackTrace();
@@ -229,6 +249,7 @@ public class TaxiAgent extends Agent {
         try {
             register.setContentObject(new TaxiRegister());
             send(register);
+            endWorkingTime = computeTimeToGoHome(workingTime);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -305,20 +326,20 @@ public class TaxiAgent extends Agent {
         // and pass it a reference to an Object
 
         Object[][] taxisData = new Object[][]{
-                {new Position(22, -44), new Position(-33, -33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(12, 44), new Position(-33, -33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(42, -44), new Position(-33, -33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(52, 44), new Position(-33, -33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(62, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(72, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(82, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(92, -44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
-                {new Position(2, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40}};
+                {new Position(500, 500), new Position(33, 33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40, 60},
+                {new Position(950, 950), new Position(33, 33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40, 160},
+                {new Position(32, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(42, 44), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40, 4*60},
+                {new Position(52, 44), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(62, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 5*60},
+                {new Position(72, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(82, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(92, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(2, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60}};
         //Object reference = new Object();
         // Object aargs[] = new Object[1];
         //aargs[0]=reference;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             try {
                 Thread.sleep(2);
             } catch (InterruptedException e) {
@@ -359,6 +380,7 @@ public class TaxiAgent extends Agent {
                 long millisecondsPassed = currentTime - previousActionTime;
                 double quantumOfTraveledDistance = speedInPointsPerMs * millisecondsPassed;
                 double distanceToNextPoint = distanceBetweenTwoPoints(route.get(0), positionTaxiNow);
+                System.out.println("Taksowce zostało: " + ((endWorkingTime - System.currentTimeMillis())/1000) + " czasu do końca dnia pracy.");
                 if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
                     positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
                     positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
@@ -376,6 +398,8 @@ public class TaxiAgent extends Agent {
                         return;
                     }
                 }
+                System.out.println("Taksowce zostało: " + ((endWorkingTime - System.currentTimeMillis())/1000) + " czasu do końca dnia pracy.");
+
             }
             previousActionTime = currentTime;
             block(delay);

@@ -201,11 +201,11 @@ public class CallCenter extends Agent
                         try {
                             bestTaxi = chooseBestTaxi(pq);
                             if (bestTaxi != null) {
-                                System.out.println("Wybralem najszybsza taksowke: ");
+                                System.out.println("Wybralem najszybsza taksowke: " + bestTaxi.getSender());
                                 ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
                                 confirmTaxi.addReceiver(bestTaxi.getSender());
                                 try {
-                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
+                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.query.getKindOfClient(), pq.id));
                                     send(confirmTaxi);
                                 } catch (IOException e) {
                                     e.printStackTrace();
