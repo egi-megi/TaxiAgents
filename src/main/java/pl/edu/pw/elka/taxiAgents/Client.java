@@ -37,7 +37,7 @@ public class Client extends Agent implements ClientI {
                         Object mesg = msgI.getContentObject();
                         if (mesg instanceof CallCenterToClient) {
                             CallCenterToClient ct = (CallCenterToClient) mesg;
-                            System.out.println("Przyjeżdża po mnie taksówka: " + ct.getTaxiName() + " za " + ct.getTimeToPickUp() + " min.");
+                            System.out.println("Przyjeżdża po mnie taksówka: ");
                         }
                     } catch (UnreadableException e) {
                         e.printStackTrace();
@@ -102,7 +102,7 @@ public class Client extends Agent implements ClientI {
                     e.printStackTrace();
                 }
             }
-            acClient.getO2AInterface(ClientI.class).doQuery(new Position(0, 22), new Position(55,66), false, true,true, 3, "normal");
+            acClient.getO2AInterface(ClientI.class).doQuery(new Position(0, 0), new Position(55,66), false, true,true, 3, "normal");
         }
     }
 
