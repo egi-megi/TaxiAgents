@@ -25,13 +25,13 @@ public class TaxiAgent extends Agent {
     final String KIND_OF_CARS_SEDAN = "sedan";
     final String KIND_OF_CARS_VIP = "vip";
 
-    final String DRIVER_STATUS_FREE = "free";
-    final String DRIVER_STATUS_NEAR_END = "nearEnd";
-    final String DRIVER_STATUS_GOES_HOME = "goesHome";
-    final String DRIVER_STATUS_WORKING = "working";
-    final String DRIVER_STATUS_UNAVAILABLE = "unavailable";
-    final String DRIVER_STATUS_BREAK = "break";
-    final String DRIVER_STATUS_VEHICLE_BREAKDOWN = "vehicleBreakdown";
+    public final static String DRIVER_STATUS_FREE = "free";
+    public final static String DRIVER_STATUS_NEAR_END = "nearEnd";
+    public final static String DRIVER_STATUS_GOES_HOME = "goesHome";
+    public final static String DRIVER_STATUS_WORKING = "working";
+    public final static String DRIVER_STATUS_UNAVAILABLE = "unavailable";
+    public final static String DRIVER_STATUS_BREAK = "break";
+    public final static String DRIVER_STATUS_VEHICLE_BREAKDOWN = "vehicleBreakdown";
 
     Position positionTaxiNow;
     Position positionTaxiHome;
@@ -217,7 +217,6 @@ public class TaxiAgent extends Agent {
                             priceForAllDistance = computePrice(distanceWithClient, ccct.getKindOfClient());
                             workingTimeInThisDay = workingTimeInThisDay + timeToPickUpClient + timeWithClient - timeToEndOrder;
                             todayEarnings = todayEarnings + priceForAllDistance;
-                            driverStatus = DRIVER_STATUS_WORKING;
                             clientStartPoint = ccct.getFrom();
                             clientDestination = ccct.getTo();
                             System.out.println("Taksówka ostatecznie potwierdza zabranie klienta " + ccct.getIdQuery() + ". Podjedzie po niego za " + timeToPickUpClient + " sekund.");
