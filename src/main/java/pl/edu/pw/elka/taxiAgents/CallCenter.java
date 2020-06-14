@@ -34,8 +34,10 @@ public class CallCenter extends Agent
             this.acceptedMessages = new HashMap<>();
         }
     }
-    static long maxWaitingTime = 5000L;
+    static long maxAgentsResponseWaitingTime = 5000L;
     static double maxLongerWaitingTime = 5d;
+    static double maxClientWaitingTime = 20d;
+    static double maxTaxiFreeTime = 20d;
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
@@ -94,6 +96,12 @@ public class CallCenter extends Agent
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
                         bestTaxiMeanIncome = thisTaxiMeanIncome;
+                    }
+                    if(thisTaxi.getTimeFromLastClient() > maxTaxiFreeTime && thisTaxi.getTimeToPickUpClient() < maxClientWaitingTime)
+                    {
+                        bestTaxi = thisTaxi;
+                        bestTaxiMessage = entry.getValue();
+                        break;
                     }
                 }
             }
@@ -194,7 +202,7 @@ public class CallCenter extends Agent
                 if (!QueriesToProcess.isEmpty()) {
                     ACLMessage bestTaxi;
                     ProcessingQuery pq = QueriesToProcess.peek();
-                    if (System.currentTimeMillis() - pq.waitingStartTime > maxWaitingTime) {
+                    if (System.currentTimeMillis() - pq.waitingStartTime > maxAgentsResponseWaitingTime) {
                         try {
                             bestTaxi = chooseBestTaxi(pq);
                             if (bestTaxi != null) {
