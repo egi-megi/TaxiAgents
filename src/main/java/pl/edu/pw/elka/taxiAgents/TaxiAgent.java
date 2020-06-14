@@ -175,7 +175,6 @@ public class TaxiAgent extends Agent {
 
         addBehaviour(new CyclicBehaviour(this)
         {
-
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
@@ -206,7 +205,7 @@ public class TaxiAgent extends Agent {
                                     distanceWithClient = computeDistance(cct.getFrom(), cct.getTo());
                                     priceForAllDistance = computePrice(distanceWithClient, cct.getKindOfClient());
                                     TaxiToCallCenter response;
-                                    response = TaxiToCallCenter.accepts(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, distanceToClient, timeToPickUpClient, priceForAllDistance, cct.getIdQuery());
+                                    response = TaxiToCallCenter.accepts(positionTaxiHome, kindOFCar, workingTimeInThisDay, todayEarnings, timeFromLastClient, driverStatus, distanceToClient, timeToPickUpClient, priceForAllDistance, cct.getIdQuery());
                                     ACLMessage reply = msg.createReply();
                                     reply.setPerformative(ACLMessage.INFORM);
                                     reply.setContentObject(response);
@@ -237,7 +236,7 @@ public class TaxiAgent extends Agent {
                             todayEarnings = todayEarnings + priceForAllDistance;
                             clientStartPoint = ccct.getFrom();
                             clientDestination = ccct.getTo();
-                            System.out.println("Taksówka ostatecznie potwierdza zabranie klienta " + ccct.getIdQuery() + ". Podjedzie po niego za " + timeToPickUpClient + " sekund.");
+                            System.out.println("The taxi finally confirms that the client has been picked up for " + timeToPickUpClient + " sec.");
                         }
                     } catch (UnreadableException | IOException e) {
                         e.printStackTrace();
@@ -380,11 +379,11 @@ public class TaxiAgent extends Agent {
             }
 
             long currentTime = System.currentTimeMillis();
+            //System.out.println("Taxi has left " + ((endWorkingTime - System.currentTimeMillis())/1000) + " sec to the end of the working day.");
             if(previousActionTime != 0) { // if previous time == 0 there is nothing to calculate
                 long millisecondsPassed = currentTime - previousActionTime;
                 double quantumOfTraveledDistance = speedInPointsPerMs * millisecondsPassed;
                 double distanceToNextPoint = distanceBetweenTwoPoints(route.get(0), positionTaxiNow);
-                System.out.println("Taksowce zostało: " + ((endWorkingTime - System.currentTimeMillis())/1000) + " czasu do końca dnia pracy.");
                 if(quantumOfTraveledDistance < distanceToNextPoint) { //if next point is not reached (it implies that distanceToNextPoint > 0)
                     positionTaxiNow.latitude = (int)(positionTaxiNow.latitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).latitude - positionTaxiNow.latitude));
                     positionTaxiNow.longitude = (int)(positionTaxiNow.longitude + quantumOfTraveledDistance / distanceToNextPoint * (route.get(0).longitude - positionTaxiNow.longitude));
@@ -402,7 +401,6 @@ public class TaxiAgent extends Agent {
                         return;
                     }
                 }
-                System.out.println("Taksowce zostało: " + ((endWorkingTime - System.currentTimeMillis())/1000) + " czasu do końca dnia pracy.");
 
             }
             previousActionTime = currentTime;
