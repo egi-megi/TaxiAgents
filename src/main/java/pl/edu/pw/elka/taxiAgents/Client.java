@@ -10,15 +10,13 @@ import jade.lang.acl.UnreadableException;
 import jade.wrapper.ContainerController;
 import jade.core.Runtime;
 import jade.wrapper.*;
-import pl.edu.pw.elka.taxiAgents.messages.CallCenterToClient;
-import pl.edu.pw.elka.taxiAgents.messages.CallTaxi;
-import pl.edu.pw.elka.taxiAgents.messages.TaxiRegister;
-import pl.edu.pw.elka.taxiAgents.messages.TaxiToCallCenter;
+import pl.edu.pw.elka.taxiAgents.messages.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
 
 public class Client extends Agent implements ClientI {
+    Position startPosition;
 
     public Client() {
         registerO2AInterface(ClientI.class,this);
@@ -37,6 +35,7 @@ public class Client extends Agent implements ClientI {
                         Object mesg = msgI.getContentObject();
                         if (mesg instanceof CallCenterToClient) {
                             CallCenterToClient ct = (CallCenterToClient) mesg;
+                            sendStatusToDisplay(startPosition, true, ct.getTimeToPickUp().longValue());
                             System.out.println("Taxi: " + ct.getTaxiName() + "pick me up for " + ct.getTimeToPickUp() + " sec.");
                         }
                     } catch (UnreadableException e) {
@@ -47,12 +46,24 @@ public class Client extends Agent implements ClientI {
                      System.out.println("== Answer to Client" + " <- "
                      + msgI.getContent() + " from "
                      + msgI.getSender().getName());
-                     }
-                     block();*/
+                     }*/
+                     block();
                 }
             }
         });
 
+    }
+
+    void sendStatusToDisplay(Position clientPosition, boolean isTaxiAssigned, long timeToPickup) {
+        ACLMessage status = new ACLMessage(ACLMessage.INFORM);
+        status.addReceiver(new AID("display", AID.ISLOCALNAME));
+        ClientStatus message = new ClientStatus(clientPosition, isTaxiAssigned, timeToPickup);
+        try {
+            status.setContentObject(message);
+            send(status);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -65,6 +76,8 @@ public class Client extends Agent implements ClientI {
                           int numberOFPassengers,
                           String kindOfClient) throws IOException {
 
+        startPosition = from;
+
         ACLMessage msg= new ACLMessage(ACLMessage.INFORM);
 
         msg.addReceiver(new AID("callCenter", AID.ISLOCALNAME));
@@ -73,6 +86,8 @@ public class Client extends Agent implements ClientI {
         msg.setContentObject(ct);
         send(msg);
         System.out.println("Asking about picking me up.");
+
+        sendStatusToDisplay(startPosition, false, Long.MAX_VALUE);
         return null;
     }
 

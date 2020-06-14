@@ -29,6 +29,7 @@ public class DisplayAgent extends Agent {
     Frame image;
     DisplayFrame window;
     final int TRANSFORMATION_SCALE = 10;
+    final int TAXI_TIMEOUT = 10000;
 
     List<TaxiData> taxis = new ArrayList<>();
     List<ClientData> clients = new ArrayList<>();
@@ -49,6 +50,16 @@ public class DisplayAgent extends Agent {
         });
 
         addBehaviour(new Receiver(this));
+    }
+
+    void removeTakenClients() {
+        long currentTime = System.currentTimeMillis();
+        clients.removeIf(client -> client.isTaxiAssigned && client.pickupTime < currentTime);
+    }
+
+    void removeMissingTaxis() {
+        long currentTime = System.currentTimeMillis();
+        taxis.removeIf(taxi -> currentTime - taxi.lastMessageTime > TAXI_TIMEOUT);
     }
 
     public static void main(String[] args) throws StaleProxyException, IOException {
@@ -144,8 +155,9 @@ public class DisplayAgent extends Agent {
         }
 
         void plotClient(Graphics2D g2, ClientData client) {
-            g2.drawOval(client.position.longitude, client.position.latitude, 3,3);
-            g2.drawString(client.id, client.position.longitude, client.position.latitude);
+            Position clientPositionTransformed = new Position(client.position.longitude / TRANSFORMATION_SCALE, client.position.latitude / TRANSFORMATION_SCALE);
+            g2.drawOval(clientPositionTransformed.longitude, clientPositionTransformed.latitude, 3,3);
+            g2.drawString(client.id, clientPositionTransformed.longitude, clientPositionTransformed.latitude);
         }
 
         public Color getBackgroundColor() {return BACKGROUND;}
@@ -175,6 +187,7 @@ public class DisplayAgent extends Agent {
         public String id;
         public Position position;
         boolean isTaxiAssigned;
+        long pickupTime;
 
         public ClientData() {}
         public ClientData(String id, Position position, boolean isTaxiAssigned) {
@@ -206,13 +219,29 @@ public class DisplayAgent extends Agent {
                             }
                         }
                         if(!taxiFound) taxis.add(taxiInfo);
-                        window.repaint();
+                    }
+                    else if(msg instanceof ClientStatus) {
+                        ClientStatus status = (ClientStatus) msg;
+                        ClientData clientInfo = new ClientData(msgI.getSender().getLocalName(), status.position, status.isTaxiAssigned);
+                        clientInfo.pickupTime = System.currentTimeMillis() + status.timeToPickup * 1000;
+                        boolean clientFound = false;
+                        for(int i = 0; i < clients.size(); ++i) {
+                            if(clients.get(i).id.equals(clientInfo.id)) {
+                                clients.set(i, clientInfo);
+                                clientFound = true;
+                                break;
+                            }
+                        }
+                        if(!clientFound) clients.add(clientInfo);
                     }
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
             }
-            block();
+            removeTakenClients();
+            removeMissingTaxis();
+            window.repaint();
+            block(3000);
         }
     }
 }
