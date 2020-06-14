@@ -35,7 +35,7 @@ public class CallCenter extends Agent
         }
     }
     static long maxWaitingTime = 5000L;
-    static double maxLongerWaitingTime = 100d;
+    static double maxLongerWaitingTime = 5d;
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
@@ -89,7 +89,8 @@ public class CallCenter extends Agent
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
                         }
-                    } else if (thisTaxi.getTimeToPickUpClient() < bestTaxi.getTimeToPickUpClient()){
+                    } else if ( bestTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime) {
+                    } else {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
                         bestTaxiMeanIncome = thisTaxiMeanIncome;
