@@ -5,6 +5,7 @@ import pl.edu.pw.elka.taxiAgents.Position;
 import java.io.Serializable;
 
 public class CallTaxi implements Serializable {
+
     Position from;
     Position to;
     boolean ifBabySeat;
