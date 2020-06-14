@@ -17,6 +17,8 @@ import java.util.List;
 
 public class TaxiAgent extends Agent {
 
+    //sprawdzam brunch
+
     final String KIND_OF_CARS_VAN = "van";
     final String KIND_OF_CARS_COMBI = "combi";
     final String KIND_OF_CARS_SEDAN = "sedan";
