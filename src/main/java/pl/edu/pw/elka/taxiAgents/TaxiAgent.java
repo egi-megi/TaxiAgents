@@ -47,14 +47,17 @@ public class TaxiAgent extends Agent {
     int timeFromLastClient;
     double timeToEndOrder = 0;
 
-    double maximumSpeed = 0;
+    double maximumSpeed = 0; ///< points per second
     double distanceToClient;
     double distanceWithClient;
     double timeToPickUpClient;
     double priceForAllDistance;
 
 
+    boolean isRidingWithClient = false; ///< specifies if client is in a taxi
     boolean isMoving = false; ///< specifies if taxi is moving
+    Position clientDestination;
+    Position clientStartPoint;
     List<Position> route = new ArrayList<>(); ///< remaining route to destination
 
     void setupFromArgs(Object[] taxisData) {
@@ -128,7 +131,7 @@ public class TaxiAgent extends Agent {
             pricePerKilometer = 3.0;
         }
         priceForAllDistance = distanceToClient * pricePerKilometer;
-        return priceForAllDistance;
+            return priceForAllDistance;
     }
 
     protected void setup() {
@@ -136,16 +139,23 @@ public class TaxiAgent extends Agent {
 
         //TODO temp
         maximumSpeed = 5;
-        route.add(new Position(2, 80));
-        route.add(new Position(25, 80));
-        route.add(new Position(25, 60));
-        route.add(new Position(14, 60));
-        route.add(new Position(-10, -10));
-        route.add(new Position(20, 20));
-        isMoving = true;
+//            route.add(new Position(2, 80));
+//            route.add(new Position(25, 80));
+//            route.add(new Position(25, 60));
+//            route.add(new Position(14, 60));
+//            route.add(new Position(-10, -10));
+//            route.add(new Position(20, 20));
+//            route = createRoute(positionTaxiNow, new Position(60, 60));
+//            driverStatus = DRIVER_STATUS_WORKING;
+//            isMoving = true;
+//        clientStartPoint = new Position(60, 60);
+//        clientDestination = new Position(10, 3);
+
         long movingDelay = 1000;
+        long schedulerDelay = 500;
 
         addBehaviour(new MovementBehaviour(this, movingDelay));
+        addBehaviour(new TaskScheduler(this, schedulerDelay));
 
         addBehaviour(new CyclicBehaviour(this)
         {
@@ -222,6 +232,65 @@ public class TaxiAgent extends Agent {
         }
     }
 
+    /**
+     * Method calculates distance between two points
+     * @param point1 First point
+     * @param point2 Second point
+     * @return distance between points.
+     */
+    double distanceBetweenTwoPoints(Position point1, Position point2) {
+        return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
+    }
+
+    /**
+     * Method that calculates time required to travel along given route.
+     * @param startPoint First point of the route.
+     * @param nextPoints Remaining part of the route.
+     * @return Time in seconds, required to travel from start to end.
+     */
+    long calculateRouteTime(Position startPoint, List<Position> nextPoints) {
+        if(maximumSpeed == 0) return Long.MAX_VALUE;
+        long result = 0;
+        Position currentPoint = startPoint;
+        for(Position nextPoint: nextPoints) {
+            double sectionLength = distanceBetweenTwoPoints(currentPoint, nextPoint);
+            result = result + (long)(sectionLength / maximumSpeed);
+            currentPoint = nextPoint;
+        }
+        return result;
+    }
+
+    /**
+     * Overloaded method createRoad.
+     * @param startPoint Start of the journey.
+     * @param finishPoint Last point of the journey.
+     * @return The list of points without start point.
+     */
+    List<Position> createRoute(Position startPoint, Position finishPoint) {
+        return createRoute(startPoint, finishPoint, true);
+    }
+
+    /**
+     * Method that creates route from start point to end point. Star point is not included in a route. If start point is
+     * the same as end point, route consist of only one point (end point). Otherwise, it consist of two points: middle
+     * point and finish point. Position of middle point depends on argument isLongitudeFirst. If it is true, middle
+     * point's latitude is the same as start point, longitude same as finish point. If false - otherwise.
+     * @param startPoint Start of the journey.
+     * @param finishPoint Last point of the journey.
+     * @param isLongitudeFirst Tells if travel starts along longitude or latitude.
+     * @return The list of points without start point.
+     */
+    List<Position> createRoute(Position startPoint, Position finishPoint, boolean isLongitudeFirst) {
+        List<Position> result = new ArrayList<>();
+        if(startPoint == finishPoint) result.add(finishPoint);
+        else {
+            if(isLongitudeFirst) result.add(new Position(finishPoint.longitude, startPoint.latitude));
+            else result.add(new Position(startPoint.longitude, finishPoint.latitude));
+            result.add(finishPoint);
+        }
+        return result;
+    }
+
     public static void main(String[] args) throws StaleProxyException, IOException {
         // Get a hold on JADE runtime
         Runtime rt = Runtime.instance();
@@ -234,7 +303,7 @@ public class TaxiAgent extends Agent {
         // and pass it a reference to an Object
 
         Object[][] taxisData = new Object[][]{
-                {new Position(22, -44), new Position(-33, -33), true, true, "sedan", 4, true, true, "free", 5.5, 150, 20, 40},
+                {new Position(22, -44), new Position(-33, -33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(12, 44), new Position(-33, -33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(42, -44), new Position(-33, -33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40},
@@ -248,9 +317,12 @@ public class TaxiAgent extends Agent {
         // Object aargs[] = new Object[1];
         //aargs[0]=reference;
         for (int i = 0; i < 1; i++) {
+            try {
+                Thread.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             AgentController dummy = cc.createNewAgent("taxi-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
-
-
             // Fire up the agent
             dummy.start();
         }
@@ -308,16 +380,6 @@ public class TaxiAgent extends Agent {
         }
 
         /**
-         * Method calculates distance between two points
-         * @param point1 First point
-         * @param point2 Second point
-         * @return distance between points.
-         */
-        double distanceBetweenTwoPoints(Position point1, Position point2) {
-            return Math.sqrt(Math.pow(point1.longitude - point2.longitude, 2) + Math.pow(point1.latitude - point2.latitude, 2));
-        }
-
-        /**
          * Method invoked when destination is reached. It stops movement, resets previousActionTime, and informs others about the event
          */
         void destinationReached() { //TODO kogo informować?
@@ -326,4 +388,72 @@ public class TaxiAgent extends Agent {
             System.out.println(" - " + myAgent.getLocalName() + " destination reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
         }
     }
+
+
+    /**
+     * Class that tells taxi to move and checks if it reached destination.
+     */
+    class TaskScheduler extends CyclicBehaviour {
+        long delay;
+        long timeOfLastJobEnd = System.currentTimeMillis();
+
+        TaskScheduler(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            timeToEndOrder = 0;
+            timeFromLastClient = 0;
+
+            //things to do if driver is working
+            if(driverStatus.equals(DRIVER_STATUS_WORKING)) {
+                //If driver is working but not moving it means, he reached destination.
+                if(!isMoving) {
+                    //If he was riding with a client, he's now free and clears memory out of previous directions.
+                    if(isRidingWithClient) {
+                        driverStatus = DRIVER_STATUS_FREE;
+                        isRidingWithClient = false;
+                        clientStartPoint = null;
+                        clientDestination = null;
+                        timeOfLastJobEnd = System.currentTimeMillis();
+                        System.out.println(" - " + myAgent.getLocalName() + " job done");
+                    }
+                    //Otherwise, it's time to pick up a client.
+                    else {
+                        route = createRoute(positionTaxiNow, clientDestination);
+                        isRidingWithClient = true;
+                        isMoving = true;
+                        timeToEndOrder = calculateRouteTime(positionTaxiNow, route);
+                        System.out.println(" - " + myAgent.getLocalName() + " picking up the client");
+                    }
+                }
+                //Otherwise driver is moving and time to end must be calculated
+                else {
+                    timeToEndOrder = calculateRouteTime(positionTaxiNow, route);
+                    //If driver is going for a client, ride with a client must be included.
+                    if(!isRidingWithClient) timeToEndOrder = timeToEndOrder +
+                            calculateRouteTime(clientStartPoint, createRoute(clientStartPoint, clientDestination));
+                }
+            }
+
+            //Things to do when driver is free.
+            else if(driverStatus.equals(DRIVER_STATUS_FREE)) {
+                //If clientDestination and clientStartPoint is not null, it's time to go.
+                if (clientDestination != null && clientStartPoint != null) {
+                    driverStatus = DRIVER_STATUS_WORKING;
+                    route = createRoute(positionTaxiNow, clientStartPoint);
+                    isRidingWithClient = false;
+                    isMoving = true;
+                    System.out.println(" - " + myAgent.getLocalName() + " starting job - going for a client");
+                } else {
+                    timeFromLastClient = (int) (System.currentTimeMillis() - timeOfLastJobEnd) / 1000; //in seconds
+//                    System.out.println(" - " + myAgent.getLocalName() + " time since last job: " + timeFromLastClient);
+                }
+            }
+
+            block(delay);
+        }
+    }
 }
+
