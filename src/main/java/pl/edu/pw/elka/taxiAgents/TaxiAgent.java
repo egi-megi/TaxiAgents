@@ -160,7 +160,7 @@ public class TaxiAgent extends Agent {
         setupFromArgs(getArguments());
 
         //TODO temp
-        maximumSpeed = 5;
+        maximumSpeed = 50;
 //            route.add(new Position(2, 80));
 //            route.add(new Position(25, 80));
 //            route.add(new Position(25, 60));
@@ -175,9 +175,11 @@ public class TaxiAgent extends Agent {
 
         long movingDelay = 1000;
         long schedulerDelay = 500;
+        long statusSenderDelay = 1000;
 
         addBehaviour(new MovementBehaviour(this, movingDelay));
         addBehaviour(new TaskScheduler(this, schedulerDelay));
+        addBehaviour(new StatusSender(this, statusSenderDelay));
 
         addBehaviour(new CyclicBehaviour(this)
         {
@@ -409,7 +411,6 @@ public class TaxiAgent extends Agent {
                         return;
                     }
                 }
-
             }
             previousActionTime = currentTime;
             block(delay);
@@ -430,7 +431,7 @@ public class TaxiAgent extends Agent {
      * Class that tells taxi to move and checks if it reached destination.
      */
     class TaskScheduler extends CyclicBehaviour {
-        long delay;
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
         long timeOfLastJobEnd = System.currentTimeMillis();
 
         TaskScheduler(Agent a, long delay) {
@@ -488,6 +489,28 @@ public class TaxiAgent extends Agent {
                 }
             }
 
+            block(delay);
+        }
+    }
+
+    class StatusSender extends CyclicBehaviour {
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
+
+        public StatusSender(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            ACLMessage status = new ACLMessage(ACLMessage.INFORM);
+            status.addReceiver(new AID("display", AID.ISLOCALNAME));
+            TaxiStatus message = new TaxiStatus(driverStatus, positionTaxiNow, route, isRidingWithClient);
+            try {
+                status.setContentObject(message);
+                send(status);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             block(delay);
         }
     }
