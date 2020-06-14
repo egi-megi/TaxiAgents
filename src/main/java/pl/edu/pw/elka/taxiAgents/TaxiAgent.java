@@ -4,6 +4,9 @@ import jade.core.*;
 import jade.core.Runtime;
 import jade.core.behaviours.*;
 
+import jade.domain.AMSService;
+import jade.domain.FIPAAgentManagement.AMSAgentDescription;
+import jade.domain.FIPAException;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
@@ -65,6 +68,8 @@ public class TaxiAgent extends Agent {
     Position clientDestination;
     Position clientStartPoint;
     List<Position> route = new ArrayList<>(); ///< remaining route to destination
+
+    boolean isDisplayAgentPresent = false;
 
     void setupFromArgs(Object[] taxisData) {
         positionTaxiNow = (Position) (taxisData[0]);
@@ -159,26 +164,20 @@ public class TaxiAgent extends Agent {
     protected void setup() {
         setupFromArgs(getArguments());
 
-        //TODO temp
-        maximumSpeed = 50;
-//            route.add(new Position(2, 80));
-//            route.add(new Position(25, 80));
-//            route.add(new Position(25, 60));
-//            route.add(new Position(14, 60));
-//            route.add(new Position(-10, -10));
-//            route.add(new Position(20, 20));
-//            route = createRoute(positionTaxiNow, new Position(60, 60));
-//            driverStatus = DRIVER_STATUS_WORKING;
-//            isMoving = true;
-//        clientStartPoint = new Position(60, 60);
-//        clientDestination = new Position(10, 3);
+        if (ifExperiencedDriver) {
+            maximumSpeed = 40.0;
+        } else {
+            maximumSpeed = 30.0;
+        }
 
         long movingDelay = 1000;
         long schedulerDelay = 500;
         long statusSenderDelay = 1000;
+        long displayAgentCheckerDelay = 3000;
 
         addBehaviour(new MovementBehaviour(this, movingDelay));
         addBehaviour(new TaskScheduler(this, schedulerDelay));
+        addBehaviour(new DisplayAgentPresenceChecker(this, displayAgentCheckerDelay));
         addBehaviour(new StatusSender(this, statusSenderDelay));
 
         addBehaviour(new CyclicBehaviour(this)
@@ -502,14 +501,43 @@ public class TaxiAgent extends Agent {
         }
 
         public void action() {
-            ACLMessage status = new ACLMessage(ACLMessage.INFORM);
-            status.addReceiver(new AID("display", AID.ISLOCALNAME));
-            TaxiStatus message = new TaxiStatus(driverStatus, positionTaxiNow, route, isRidingWithClient);
+            if(isDisplayAgentPresent) {
+                ACLMessage status = new ACLMessage(ACLMessage.INFORM);
+                status.addReceiver(new AID("display", AID.ISLOCALNAME));
+                TaxiStatus message = new TaxiStatus(driverStatus, positionTaxiNow, route, isRidingWithClient);
             try {
                 status.setContentObject(message);
                 send(status);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            }
+            block(delay);
+        }
+    }
+
+    class DisplayAgentPresenceChecker extends CyclicBehaviour {
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
+        boolean toggleAction;
+        AMSAgentDescription description;
+
+        public DisplayAgentPresenceChecker(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+            description = new AMSAgentDescription();
+            description.setName(new AID("display", AID.ISLOCALNAME));
+        }
+
+        public void action() {
+            toggleAction = !toggleAction;
+            if(toggleAction) {
+                AMSAgentDescription[] foundAgents = null;
+                try {
+                    foundAgents = AMSService.search(myAgent, description);
+                } catch (FIPAException e) {
+                    e.printStackTrace();
+                }
+                isDisplayAgentPresent = (foundAgents != null && foundAgents.length > 0);
             }
             block(delay);
         }
