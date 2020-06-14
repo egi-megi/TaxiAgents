@@ -24,14 +24,16 @@ public class CallCenter extends Agent
         Map<String, ACLMessage> acceptedMessages;
         AID customer;
         long waitingStartTime;
+        Double timeToPickUp;
 
-        public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer) {
+        public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer, Double timeToPickUp) {
             this.id = id;
             this.query = query;
             this.taxisToCheck = taxisToCheck;
             this.customer = customer;
             this.waitingStartTime = System.currentTimeMillis();
             this.acceptedMessages = new HashMap<>();
+            this.timeToPickUp = timeToPickUp;
         }
     }
     static long maxAgentsResponseWaitingTime = 5000L;
@@ -81,6 +83,7 @@ public class CallCenter extends Agent
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         bestTaxiMeanIncome = bestTaxi.getTodayEarnings()/bestTaxi.getWorkingTimeInThisDay();
                     }
                     if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
@@ -89,6 +92,7 @@ public class CallCenter extends Agent
                     {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         break;
                     }
                     thisTaxiMeanIncome = thisTaxi.getTodayEarnings()/thisTaxi.getWorkingTimeInThisDay();
@@ -99,6 +103,7 @@ public class CallCenter extends Agent
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
+                            pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         }
                     } else if ( bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
                         if (bestTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime) {
@@ -107,6 +112,7 @@ public class CallCenter extends Agent
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
+                            pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         }
                     }
 
@@ -114,6 +120,7 @@ public class CallCenter extends Agent
                     {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
+                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         break;
                     }
                 }
@@ -157,7 +164,7 @@ public class CallCenter extends Agent
                                     ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
                                             ct,
                                             new LinkedList<>(taxis.keySet()),
-                                            msgI.getSender());
+                                            msgI.getSender(), 0d);
                                     QueriesToProcess.add(pq);
                                     activeQueries.put(pq.id, pq);
                                     try {
@@ -192,6 +199,16 @@ public class CallCenter extends Agent
                                 if(tco.isIfTake())
                                 {
                                     System.out.println("Great - taxi is realizing query NO: "+tco.getIdQuery());
+                                    ProcessingQuery pq = activeQueries.get(tco.getIdQuery());
+                                    ACLMessage informClient = new ACLMessage(ACLMessage.INFORM);
+                                    informClient.addReceiver(pq.customer);
+                                    try {
+                                        informClient.setContentObject(new CallCenterToClient(msgI.getSender().getName(), pq.timeToPickUp));
+                                        send(informClient);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 }
                                 else {
                                     System.out.println("Ooops! Specific taxi cannot handle this order");
