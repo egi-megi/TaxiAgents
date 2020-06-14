@@ -143,7 +143,7 @@ public class TaxiAgent extends Agent {
         setupFromArgs(getArguments());
 
         //TODO temp
-        maximumSpeed = 5;
+        maximumSpeed = 50;
 //            route.add(new Position(2, 80));
 //            route.add(new Position(25, 80));
 //            route.add(new Position(25, 60));

@@ -28,6 +28,7 @@ import java.awt.geom.Rectangle2D;
 public class DisplayAgent extends Agent {
     Frame image;
     DisplayFrame window;
+    final int TRANSFORMATION_SCALE = 10;
 
     List<TaxiData> taxis = new ArrayList<>();
     List<ClientData> clients = new ArrayList<>();
@@ -129,13 +130,14 @@ public class DisplayAgent extends Agent {
         }
 
         void plotTaxi(Graphics2D g2, TaxiData taxi) {
-            g2.drawOval(taxi.position.longitude, taxi.position.latitude, 3,3);
-            g2.drawString(taxi.id, taxi.position.longitude, taxi.position.latitude);
+            Position taxiPositionTransformed = new Position(taxi.position.longitude / TRANSFORMATION_SCALE, taxi.position.latitude / TRANSFORMATION_SCALE); //image is 10x smaller than working area
+            g2.drawOval(taxiPositionTransformed.longitude, taxiPositionTransformed.latitude, 3,3);
+            g2.drawString(taxi.id, taxiPositionTransformed.longitude, taxiPositionTransformed.latitude);
             if(!taxi.route.isEmpty()) {
                 GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, taxi.route.size() + 1);
-                polyline.moveTo (taxi.position.longitude, taxi.position.latitude);
+                polyline.moveTo (taxiPositionTransformed.longitude, taxiPositionTransformed.latitude);
                 for(Position point : taxi.route) {
-                    polyline.lineTo(point.longitude, point.latitude);
+                    polyline.lineTo((float)point.longitude / TRANSFORMATION_SCALE, (float)point.latitude / TRANSFORMATION_SCALE); //also transformed
                 }
                 g2.draw(polyline);
             }
