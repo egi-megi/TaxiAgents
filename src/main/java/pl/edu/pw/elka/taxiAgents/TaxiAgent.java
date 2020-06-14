@@ -4,6 +4,7 @@ import jade.core.*;
 import jade.core.Runtime;
 import jade.core.behaviours.*;
 
+import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
 import jade.lang.acl.*;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Thread.*;
+
 public class TaxiAgent extends Agent {
 
     final String KIND_OF_CARS_VAN = "van";
@@ -22,13 +25,13 @@ public class TaxiAgent extends Agent {
     final String KIND_OF_CARS_SEDAN = "sedan";
     final String KIND_OF_CARS_VIP = "vip";
 
-    final String DRIVER_STATUS_FREE = "free";
-    final String DRIVER_STATUS_NEAR_END = "nearEnd";
-    final String DRIVER_STATUS_GOES_HOME = "goesHome";
-    final String DRIVER_STATUS_WORKING = "working";
-    final String DRIVER_STATUS_UNAVAILABLE = "unavailable";
-    final String DRIVER_STATUS_BREAK = "break";
-    final String DRIVER_STATUS_VEHICLE_BREAKDOWN = "vehicleBreakdown";
+    public final static String DRIVER_STATUS_FREE = "free";
+    public final static String DRIVER_STATUS_NEAR_END = "nearEnd";
+    public final static String DRIVER_STATUS_GOES_HOME = "goesHome";
+    public final static String DRIVER_STATUS_WORKING = "working";
+    public final static String DRIVER_STATUS_UNAVAILABLE = "unavailable";
+    public final static String DRIVER_STATUS_BREAK = "break";
+    public final static String DRIVER_STATUS_VEHICLE_BREAKDOWN = "vehicleBreakdown";
 
     Position positionTaxiNow;
     Position positionTaxiHome;
@@ -36,6 +39,7 @@ public class TaxiAgent extends Agent {
     boolean ifBabySeat;
     boolean ifHomePet;
     String kindOFCar;
+    //enum kindOFCar {sedan, combi, van, vip};
     int numberOFPassengers;
     boolean ifStandByForSpecialTask;
     boolean ifExperiencedDriver;
@@ -387,7 +391,7 @@ public class TaxiAgent extends Agent {
                     System.out.println(" - " + myAgent.getLocalName() + " moving: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
 
                 }
-                else {
+                else { // next point is reached in this move
                     positionTaxiNow = route.get(0);
                     route.remove(0);
                     System.out.println(" - " + myAgent.getLocalName() + " point reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
