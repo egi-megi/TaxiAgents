@@ -224,23 +224,12 @@ public class CallCenter extends Agent
                                 pq.waitingStartTime = System.currentTimeMillis();
                                 QueriesToProcess.add(QueriesToProcess.poll());
                             }
-                            //Here is creating message to best Taxi that they will have
-                                /*
-                                ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
-                                System.out.println("Informuję taxi o tym, że bierze przejazd:");
-                                System.out.println(msgI.getSender().getName());
-                                confirmTaxi.addReceiver(msgI.getSender());
-                                try {
-                                    confirmTaxi.setContentObject(new CallCenterConfirmTaxi(pq.query.getFrom(), pq.query.getTo(), pq.id));
-                                    send(confirmTaxi);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                } */
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                }
+                } else { block(); }
             }
         });
 
