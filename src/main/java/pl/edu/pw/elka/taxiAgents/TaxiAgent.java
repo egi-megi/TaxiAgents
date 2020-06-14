@@ -339,9 +339,9 @@ public class TaxiAgent extends Agent {
         // and pass it a reference to an Object
 
         Object[][] taxisData = new Object[][]{
-                {new Position(500, 500), new Position(33, 33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40, 60},
-                {new Position(950, 950), new Position(33, 33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40, 160},
-                {new Position(32, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(960, 960), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 5, 20, 60},
+                {new Position(980, 980), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 5, 20, 60},
+                {new Position(990, 990), new Position(33, 33), true, true, "van", 8, true, true, "working", 5.5, 150, 5, 20, 8 * 60},
                 {new Position(42, 44), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40, 4*60},
                 {new Position(52, 44), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40, 8*60},
                 {new Position(62, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 5*60},
