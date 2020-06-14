@@ -207,7 +207,7 @@ public class DisplayAgent extends Agent {
                     else if(msg instanceof ClientStatus) {
                         ClientStatus status = (ClientStatus) msg;
                         ClientData clientInfo = new ClientData(msgI.getSender().getLocalName(), status.position, status.isTaxiAssigned);
-                        clientInfo.pickupTime = System.currentTimeMillis() + status.timeToPickup * 1000;
+                        clientInfo.pickupTime = System.currentTimeMillis() + (status.timeToPickup + 3) * 1000; //+3 - time for pickup, turnings and arrival
                         boolean clientFound = false;
                         for(int i = 0; i < clients.size(); ++i) {
                             if(clients.get(i).id.equals(clientInfo.id)) {
