@@ -211,6 +211,8 @@ public class TaxiAgent extends Agent {
                             reply.setPerformative(ACLMessage.INFORM);
                             reply.setContentObject(response);
                             send(reply);
+                            clientDestination = ccct.getTo();
+                            clientStartPoint = ccct.getFrom();
                             System.out.println("Taksówka ostatecznie potwierdza zabranie klienta " + ccct.getIdQuery() + ".");
                         }
                     } catch (UnreadableException | IOException e) {

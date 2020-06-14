@@ -15,6 +15,8 @@ public class CallCenterConfirmTaxi implements Serializable{
         this.idQuery = idQuery;
     }
 
+
+
     public Position getFrom() {
         return from;
     }
