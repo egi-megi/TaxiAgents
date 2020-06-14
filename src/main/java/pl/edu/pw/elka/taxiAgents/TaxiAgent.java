@@ -158,9 +158,11 @@ public class TaxiAgent extends Agent {
 
         long movingDelay = 1000;
         long schedulerDelay = 500;
+        long statusSenderDelay = 1000;
 
         addBehaviour(new MovementBehaviour(this, movingDelay));
         addBehaviour(new TaskScheduler(this, schedulerDelay));
+        addBehaviour(new StatusSender(this, statusSenderDelay));
 
         addBehaviour(new CyclicBehaviour(this)
         {
@@ -311,7 +313,7 @@ public class TaxiAgent extends Agent {
         // and pass it a reference to an Object
 
         Object[][] taxisData = new Object[][]{
-                {new Position(500, 500), new Position(-33, -33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40},
+                {new Position(500, 500), new Position(600, 600), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(950, 950), new Position(-33, -33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(32, 44), new Position(-33, -33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40},
                 {new Position(42, -44), new Position(-33, -33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40},
@@ -402,7 +404,7 @@ public class TaxiAgent extends Agent {
      * Class that tells taxi to move and checks if it reached destination.
      */
     class TaskScheduler extends CyclicBehaviour {
-        long delay;
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
         long timeOfLastJobEnd = System.currentTimeMillis();
 
         TaskScheduler(Agent a, long delay) {
@@ -460,6 +462,28 @@ public class TaxiAgent extends Agent {
                 }
             }
 
+            block(delay);
+        }
+    }
+
+    class StatusSender extends CyclicBehaviour {
+        long delay; ///< specifies time between invocations of action method (in milliseconds)
+
+        public StatusSender(Agent a, long delay) {
+            super(a);
+            this.delay = delay;
+        }
+
+        public void action() {
+            ACLMessage status = new ACLMessage(ACLMessage.INFORM);
+            status.addReceiver(new AID("display", AID.ISLOCALNAME));
+            TaxiStatus message = new TaxiStatus(driverStatus, positionTaxiNow, route, isRidingWithClient);
+            try {
+                status.setContentObject(message);
+                send(status);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             block(delay);
         }
     }

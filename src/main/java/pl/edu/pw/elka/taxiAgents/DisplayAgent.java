@@ -84,14 +84,14 @@ public class DisplayAgent extends Agent {
             Graphics2D g2 = (Graphics2D) g;
             g2.setColor(DEFAULT_COLOR);
 
-            taxis.addAll(Arrays.asList(
-                    new TaxiData("Taxi1", TaxiAgent.DRIVER_STATUS_FREE, new Position(30, 30), Collections.emptyList(), false),
-                    new TaxiData("Taxi2", TaxiAgent.DRIVER_STATUS_FREE, new Position(900, 900), Collections.emptyList(), false),
-                    new TaxiData("Taxi3", TaxiAgent.DRIVER_STATUS_WORKING, new Position(100, 200), Arrays.asList(new Position(100, 500), new Position(500, 500)), false),
-                    new TaxiData("Taxi4", TaxiAgent.DRIVER_STATUS_WORKING, new Position(900, 200), Arrays.asList(new Position(900, 300), new Position(300, 300)), true),
-                    new TaxiData("Taxi5", TaxiAgent.DRIVER_STATUS_BREAK, new Position(800, 200), Collections.emptyList(), true),
-                    new TaxiData("Taxi6", TaxiAgent.DRIVER_STATUS_FREE, new Position(700, 50),Collections.emptyList(), false)
-            ));
+//            taxis.addAll(Arrays.asList(
+//                    new TaxiData("Taxi1", TaxiAgent.DRIVER_STATUS_FREE, new Position(30, 30), Collections.emptyList(), false),
+//                    new TaxiData("Taxi2", TaxiAgent.DRIVER_STATUS_FREE, new Position(900, 900), Collections.emptyList(), false),
+//                    new TaxiData("Taxi3", TaxiAgent.DRIVER_STATUS_WORKING, new Position(100, 200), Arrays.asList(new Position(100, 500), new Position(500, 500)), false),
+//                    new TaxiData("Taxi4", TaxiAgent.DRIVER_STATUS_WORKING, new Position(900, 200), Arrays.asList(new Position(900, 300), new Position(300, 300)), true),
+//                    new TaxiData("Taxi5", TaxiAgent.DRIVER_STATUS_BREAK, new Position(800, 200), Collections.emptyList(), true),
+//                    new TaxiData("Taxi6", TaxiAgent.DRIVER_STATUS_FREE, new Position(700, 50),Collections.emptyList(), false)
+//            ));
 
             clients.addAll(Arrays.asList(
                     new ClientData("Client1", new Position(30, 90), false),
@@ -196,9 +196,9 @@ public class DisplayAgent extends Agent {
                         TaxiData taxiInfo = new TaxiData(msgI.getSender().getLocalName(), status.status, status.position, status.route, status.isWithClient);
                         taxiInfo.lastMessageTime = System.currentTimeMillis();
                         boolean taxiFound = false;
-                        for(TaxiData taxi : taxis) {
-                            if(taxi.id.equals(taxiInfo.id)) {
-                                taxi = taxiInfo;
+                        for(int i = 0; i < taxis.size(); ++i) {
+                            if(taxis.get(i).id.equals(taxiInfo.id)) {
+                                taxis.set(i, taxiInfo);
                                 taxiFound = true;
                                 break;
                             }
