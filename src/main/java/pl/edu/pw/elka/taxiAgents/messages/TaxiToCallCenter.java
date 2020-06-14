@@ -75,4 +75,6 @@ public class TaxiToCallCenter implements Serializable {
     public String getQueryID() {
         return queryID;
     }
+
+    public String getDriverStatus() {return driverStatus; }
 }

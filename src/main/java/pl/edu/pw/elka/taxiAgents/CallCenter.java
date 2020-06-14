@@ -38,6 +38,7 @@ public class CallCenter extends Agent
     static double maxLongerWaitingTime = 5d;
     static double maxClientWaitingTime = 20d;
     static double maxTaxiFreeTime = 20d;
+    public final static String DRIVER_STATUS_GOES_HOME = "goesHome";
 
     AtomicInteger queriesIdsSource=new AtomicInteger(1);
 
@@ -45,12 +46,12 @@ public class CallCenter extends Agent
 
     Queue<ProcessingQuery> QueriesToProcess = new LinkedList<>();
 
-    Set<AID> taxis=new HashSet<>();
+    Map<AID, String> taxis=new HashMap<>();
 
     void sendQueryToAllTaxis(ProcessingQuery pq) throws IOException {
-        for(AID taxi : taxis)
+        for(Map.Entry<AID, String> entry : taxis.entrySet())
         {
-            sendQueryToNextTaxi(pq, taxi);
+            sendQueryToNextTaxi(pq, entry.getKey());
         }
     }
 
@@ -63,6 +64,8 @@ public class CallCenter extends Agent
     }
 
     ACLMessage chooseBestTaxi(ProcessingQuery pq) throws IOException {
+        String thisDriverStatus;
+        boolean isBestGoingHome = false;
         TaxiToCallCenter bestTaxi = null;
         TaxiToCallCenter thisTaxi;
         ACLMessage bestTaxiMessage = null;
@@ -74,6 +77,7 @@ public class CallCenter extends Agent
                 for (Map.Entry<String, ACLMessage> entry : pq.acceptedMessages.entrySet()) {
                     thisMesg = entry.getValue().getContentObject();
                     thisTaxi = (TaxiToCallCenter) thisMesg;
+                    thisDriverStatus = taxis.get(thisTaxi);
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
@@ -81,7 +85,12 @@ public class CallCenter extends Agent
                     }
                     if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
                         shortestTime = thisTaxi.getTimeToPickUpClient(); }
-
+                    if(thisDriverStatus == DRIVER_STATUS_GOES_HOME && thisTaxi.getTimeToPickUpClient()<maxClientWaitingTime)
+                    {
+                        bestTaxi = thisTaxi;
+                        bestTaxiMessage = entry.getValue();
+                        break;
+                    }
                     thisTaxiMeanIncome = thisTaxi.getTodayEarnings()/thisTaxi.getWorkingTimeInThisDay();
                     if (thisTaxiMeanIncome < bestTaxiMeanIncome)
                     {
@@ -91,12 +100,16 @@ public class CallCenter extends Agent
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
                         }
-                    } else if ( bestTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime) {
-                    } else {
-                        bestTaxi = thisTaxi;
-                        bestTaxiMessage = entry.getValue();
-                        bestTaxiMeanIncome = thisTaxiMeanIncome;
+                    } else if ( bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
+                        if (bestTaxi.getTimeToPickUpClient() - maxLongerWaitingTime < shortestTime) {
+
+                        } else {
+                            bestTaxi = thisTaxi;
+                            bestTaxiMessage = entry.getValue();
+                            bestTaxiMeanIncome = thisTaxiMeanIncome;
+                        }
                     }
+
                     if(thisTaxi.getTimeFromLastClient() > maxTaxiFreeTime && thisTaxi.getTimeToPickUpClient() < maxClientWaitingTime)
                     {
                         bestTaxi = thisTaxi;
@@ -143,7 +156,7 @@ public class CallCenter extends Agent
                                 } else {
                                     ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
                                             ct,
-                                            new LinkedList<>(taxis),
+                                            new LinkedList<>(taxis.keySet()),
                                             msgI.getSender());
                                     QueriesToProcess.add(pq);
                                     activeQueries.put(pq.id, pq);
@@ -158,6 +171,7 @@ public class CallCenter extends Agent
                             }
                             if (mesg instanceof TaxiToCallCenter) {
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
+                                taxis.put(msgI.getSender(), tcc.getDriverStatus());
                                 ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                 if(pq == null)
                                 {
@@ -188,7 +202,7 @@ public class CallCenter extends Agent
                             }
 
                             if (mesg instanceof TaxiRegister) {
-                                taxis.add(msgI.getSender());
+                                taxis.put(msgI.getSender(), "free");
                                 System.out.println("Taxi is registered " + msgI.getSender().getName());
                             }
 

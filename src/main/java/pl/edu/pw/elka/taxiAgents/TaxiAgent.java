@@ -116,6 +116,12 @@ public class TaxiAgent extends Agent {
         return (Math.abs(pFrom.longitude - pTo.longitude) + Math.abs(pFrom.latitude - pTo.latitude));
     }
 
+    boolean queryOnWayToHome(Position pTo) {
+        if(computeDistance(positionTaxiNow, positionTaxiHome) > 2*computeDistance(pTo, positionTaxiHome)){
+            return true;}
+        else return false;
+    }
+
     double computeTime(double distance) {
         double avarageDriverSpeed;
         if (ifExperiencedDriver) {
@@ -192,6 +198,8 @@ public class TaxiAgent extends Agent {
                             } else {
                                 distanceToClient = computeDistance(positionTaxiNow, cct.getFrom());
                                 if (distanceToClient > 200 && ifStandByForSpecialTask == false) {
+                                    //response = TaxiToCallCenter.reject(cct.getIdQuery());
+                                } else if (driverStatus == DRIVER_STATUS_GOES_HOME && !queryOnWayToHome(cct.getTo())) {
                                     //response = TaxiToCallCenter.reject(cct.getIdQuery());
                                 } else {
                                     long leftTimeToGoHome = (endWorkingTime - System.currentTimeMillis()) / 1000;
