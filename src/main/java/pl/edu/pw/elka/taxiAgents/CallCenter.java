@@ -115,7 +115,7 @@ public class CallCenter extends Agent
     protected void setup()
     {
 
-        System.out.println("Agent centrali "+getAID().getName()+" jest gotowy.");
+        System.out.println("Central agent "+getAID().getName()+" is ready");
 
         addBehaviour(new CyclicBehaviour(this)
         {
@@ -129,11 +129,9 @@ public class CallCenter extends Agent
                         try {
                             Object mesg = msgI.getContentObject();
                             if (mesg instanceof CallTaxi) {
-                                System.out.println("klient query");
-
                                 CallTaxi ct = (CallTaxi) mesg;
                                 if (taxis.isEmpty()) {
-                                    System.out.println("Nie mamy żadnej taksówki zarejestrowanej.");
+                                    System.out.println("There's no registered taxi");
                                 } else {
                                     ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
                                             ct,
@@ -151,12 +149,11 @@ public class CallCenter extends Agent
                                 }
                             }
                             if (mesg instanceof TaxiToCallCenter) {
-                                System.out.println("Taxi to callcenter");
                                 TaxiToCallCenter tcc = (TaxiToCallCenter) mesg;
                                 ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                 if(pq == null)
                                 {
-                                    System.out.println("Takie zapytanie nie istnieje?");
+                                    System.out.println("There is no such query like this taxi answeared");
                                     break;
                                 }
                                 System.out.println(pq.id);
@@ -184,7 +181,7 @@ public class CallCenter extends Agent
 
                             if (mesg instanceof TaxiRegister) {
                                 taxis.add(msgI.getSender());
-                                System.out.println("Rejestruje taksówkę " + msgI.getSender().getName());
+                                System.out.println("Taxi is registered " + msgI.getSender().getName());
                             }
 
                         } catch (UnreadableException e) {
@@ -201,7 +198,7 @@ public class CallCenter extends Agent
                         try {
                             bestTaxi = chooseBestTaxi(pq);
                             if (bestTaxi != null) {
-                                System.out.println("Wybralem najszybsza taksowke: " + bestTaxi.getSender());
+                                System.out.println("Best taxi has been chosen " + bestTaxi.getSender());
                                 ACLMessage confirmTaxi = new ACLMessage(ACLMessage.INFORM);
                                 confirmTaxi.addReceiver(bestTaxi.getSender());
                                 try {
@@ -213,7 +210,7 @@ public class CallCenter extends Agent
                                 QueriesToProcess.remove();
                             }
                             else {
-                                System.out.println("Brak taksówek - proszę czekać");
+                                System.out.println("There is no taxis - please wait");
                                 try {
                                     //We sends info about query to all taxis;
                                     sendQueryToAllTaxis(pq);
