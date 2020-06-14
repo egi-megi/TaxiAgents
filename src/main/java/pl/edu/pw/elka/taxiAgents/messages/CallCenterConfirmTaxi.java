@@ -14,4 +14,16 @@ public class CallCenterConfirmTaxi implements Serializable{
         this.to = to;
         this.idQuery = idQuery;
     }
+
+    public Position getFrom() {
+        return from;
+    }
+
+    public Position getTo() {
+        return to;
+    }
+
+    public String getIdQuery() {
+        return idQuery;
+    }
 }
