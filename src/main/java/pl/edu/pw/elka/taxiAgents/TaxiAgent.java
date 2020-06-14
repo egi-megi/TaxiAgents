@@ -148,8 +148,8 @@ public class TaxiAgent extends Agent {
 //            route = createRoute(positionTaxiNow, new Position(60, 60));
 //            driverStatus = DRIVER_STATUS_WORKING;
 //            isMoving = true;
-        clientStartPoint = new Position(60, 60);
-        clientDestination = new Position(10, 3);
+//        clientStartPoint = new Position(60, 60);
+//        clientDestination = new Position(10, 3);
 
         long movingDelay = 1000;
         long schedulerDelay = 500;
@@ -441,7 +441,7 @@ public class TaxiAgent extends Agent {
                     System.out.println(" - " + myAgent.getLocalName() + " starting job - going for a client");
                 } else {
                     timeFromLastClient = (int) (System.currentTimeMillis() - timeOfLastJobEnd) / 1000; //in seconds
-                    System.out.println(" - " + myAgent.getLocalName() + " time since last job: " + timeFromLastClient);
+//                    System.out.println(" - " + myAgent.getLocalName() + " time since last job: " + timeFromLastClient);
                 }
             }
 
