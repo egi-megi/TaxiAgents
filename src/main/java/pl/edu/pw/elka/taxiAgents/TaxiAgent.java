@@ -452,9 +452,6 @@ public class TaxiAgent extends Agent {
         }
 
         public void action() {
-            //TODO wtf - ta akcja zawsze zeruje liczniki taksowki
-//            timeToEndOrder = 0;
-//            timeFromLastClient = 0;
 
             //things to do if driver is working
             if(driverStatus.equals(DRIVER_STATUS_WORKING)) {
