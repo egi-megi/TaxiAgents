@@ -1,70 +1,28 @@
 package pl.edu.pw.elka.taxiAgents;
 
-        import jade.core.Profile;
-        import jade.core.ProfileImpl;
-        import jade.core.Runtime;
-        import jade.lang.acl.ACLMessage;
-        import jade.lang.acl.UnreadableException;
-        import jade.wrapper.AgentController;
-        import jade.wrapper.ContainerController;
-        import jade.wrapper.StaleProxyException;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.core.Runtime;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.StaleProxyException;
 
-        import org.junit.jupiter.api.*;
-        import pl.edu.pw.elka.taxiAgents.messages.*;
+import org.junit.jupiter.api.*;
+import pl.edu.pw.elka.taxiAgents.messages.*;
 
-        import java.io.IOException;
+import java.io.IOException;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DifferentTimeFromLastOrder {
-    AgentController acClient;
-    Runtime rt;
-    String[] taxisNames=new String[0];
-    @BeforeAll
-    public void setup() throws StaleProxyException {
-        // Get a hold on JADE runtime
-        rt = Runtime.instance();
-        // Create a default profile
+public class DifferentTimeFromLastOrder extends TestCommonInit {
 
+    protected Object[][] getTaxisData() {
+        return new Object[][]{
+                {new Position(860, 860), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 5, 5 * 1000, 600},
+                {new Position(860, 860), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 10, 5 * 1000, 600},};
 
-        Profile p = new ProfileImpl();
-        // Create a new non-main container, connecting to the default
-        // main container (i.e. on this host, port 1099)
-        rt.createMainContainer(new ProfileImpl(true));
-        ContainerController ccAgent = rt.createAgentContainer(p);
-        // Create a new agent, a DummyAgent
-        // and pass it a reference to an Object
-
-        AgentController ac=ccAgent.createNewAgent("CallCenter","pl.edu.pw.elka.taxiAgents.CallCenter",new Object[0]);
-        ac.start();
-
-
-        Object[][] taxisData = new Object[][]{
-                {new Position(760, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 5, 0, 600},
-                {new Position(760, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 5, 27, 600},};
-
-        taxisNames=new String[taxisData.length];
-        for (int i = 0; i < 2; i++) {
-            try {
-                Thread.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            taxisNames[i]=" " + i;
-            AgentController dummy = ccAgent.createNewAgent(taxisNames[i], "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
-            // Fire up the agent
-            dummy.start();
-        }
-
-        // ContainerController ccClient = rt.createAgentContainer(p);
-        acClient = ccAgent.createNewAgent("client-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TestClient", new Object[0]);
-        acClient.start();
     }
-
-    @AfterAll
-    public void shutdown(){
-        rt.shutDown();
-    }
-
 
 
     @Test
