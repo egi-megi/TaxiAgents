@@ -131,7 +131,7 @@ public class CallCenter extends Agent
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
                         }
                     }
-
+                    System.out.println("Taxi: "+entry.getValue().getSender()+ " from last "+thisTaxi.getTimeFromLastClient());
                     if(thisTaxi.getTimeFromLastClient() > maxTaxiFreeTime && thisTaxi.getTimeToPickUpClient() < maxClientWaitingTime)
                     {
                         bestTaxi = thisTaxi;
