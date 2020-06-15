@@ -6,10 +6,12 @@ public class CallCenterToClient implements Serializable {
 
     String taxiName;
     Double timeToPickUp;
+    Double price;
 
-    public CallCenterToClient(String taxiName, Double timeToPickUp) {
+    public CallCenterToClient(String taxiName, Double timeToPickUp, Double price) {
         this.taxiName = taxiName;
         this.timeToPickUp = timeToPickUp;
+        this.price = price;
     }
 
     public String getTaxiName() {
@@ -19,4 +21,6 @@ public class CallCenterToClient implements Serializable {
     public Double getTimeToPickUp() {
         return timeToPickUp;
     }
+
+    public Double getPrice() { return price; }
 }

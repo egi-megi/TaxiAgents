@@ -25,8 +25,9 @@ public class CallCenter extends Agent
         AID customer;
         long waitingStartTime;
         Double timeToPickUp;
+        Double price;
 
-        public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer, Double timeToPickUp) {
+        public ProcessingQuery(String id, CallTaxi query, Queue<AID> taxisToCheck, AID customer, Double timeToPickUp, Double price) {
             this.id = id;
             this.query = query;
             this.taxisToCheck = taxisToCheck;
@@ -34,6 +35,7 @@ public class CallCenter extends Agent
             this.waitingStartTime = System.currentTimeMillis();
             this.acceptedMessages = new HashMap<>();
             this.timeToPickUp = timeToPickUp;
+            this.price = price;
         }
     }
     static long maxAgentsResponseWaitingTime = 5000L;
@@ -128,18 +130,11 @@ public class CallCenter extends Agent
         } catch (UnreadableException e) {
             e.printStackTrace();
         }
+        pq.price = bestTaxi.getPriceForAllDistance();
         return bestTaxiMessage;
     }
 
 
-    //TODO  while (!pq.acceptedMessages.isEmpty())
-    //        {
-    //            thisTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
-    //            if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp())
-    //            {
-    //                bestTaxi = thisTaxi;
-    //            }
-    //        }: dodawac do nie j na podstawie wiadomosci2
     protected void setup()
     {
 
@@ -164,7 +159,7 @@ public class CallCenter extends Agent
                                     ProcessingQuery pq = new ProcessingQuery("" + (queriesIdsSource.getAndIncrement()),
                                             ct,
                                             new LinkedList<>(taxis.keySet()),
-                                            msgI.getSender(), 0d);
+                                            msgI.getSender(), 0d, 0d);
                                     QueriesToProcess.add(pq);
                                     activeQueries.put(pq.id, pq);
                                     try {
@@ -203,7 +198,7 @@ public class CallCenter extends Agent
                                     ACLMessage informClient = new ACLMessage(ACLMessage.INFORM);
                                     informClient.addReceiver(pq.customer);
                                     try {
-                                        informClient.setContentObject(new CallCenterToClient(msgI.getSender().getName(), pq.timeToPickUp));
+                                        informClient.setContentObject(new CallCenterToClient(msgI.getSender().getName(), pq.timeToPickUp, pq.price));
                                         send(informClient);
                                     } catch (IOException e) {
                                         e.printStackTrace();
