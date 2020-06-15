@@ -448,7 +448,7 @@ public class TaxiAgent extends Agent {
         TaskScheduler(Agent a, long delay, long longTimeFromLastClient) {
             super(a);
             this.delay = delay;
-            this.timeOfLastJobEnd=System.currentTimeMillis()-(longTimeFromLastClient);
+            this.timeOfLastJobEnd=System.currentTimeMillis()-(longTimeFromLastClient*1000);
         }
 
         public void action() {
