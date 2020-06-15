@@ -96,15 +96,15 @@ public class DisplayAgent extends Agent {
             Graphics2D g2 = (Graphics2D) g;
             g2.setColor(DEFAULT_COLOR);
 
-            for(TaxiData taxi : taxis) {
-                g2.setColor(chooseColor(taxi));
-                plotTaxi(g2, taxi);
+            for(int i = 0; i < taxis.size(); ++i) {
+                g2.setColor(chooseColor(taxis.get(i)));
+                plotTaxi(g2, taxis.get(i));
                 g2.setColor(DEFAULT_COLOR);
             }
 
-            for(ClientData client : clients) {
-                g2.setColor(chooseColor(client));
-                plotClient(g2, client);
+            for(int i = 0; i < clients.size(); ++i) {
+                g2.setColor(chooseColor(clients.get(i)));
+                plotClient(g2, clients.get(i));
                 g2.setColor(DEFAULT_COLOR);
             }
 
