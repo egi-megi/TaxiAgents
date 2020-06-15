@@ -148,7 +148,7 @@ public class Client extends Agent implements ClientI {
                     e.printStackTrace();
                 }
             }
-            acClient.getO2AInterface(ClientI.class).doQuery(new Position(1000, 1000), new Position(1050, 1050), false, false, false, 1, "normal");
+            acClient.getO2AInterface(ClientI.class).doQuery(new Position(2200, 2400), new Position(8500, 8450), false, false, false, 1, "normal");
         }
     }
 
