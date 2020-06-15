@@ -350,20 +350,20 @@ public class TaxiAgent extends Agent {
         // and pass it a reference to an Object
 
         Object[][] taxisData = new Object[][]{
-                {new Position(960, 960), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 5, 20, 60},
-                {new Position(980, 980), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 5, 20, 60},
-                {new Position(990, 990), new Position(33, 33), true, true, "van", 8, true, true, "working", 5.5, 150, 5, 20, 8 * 60},
-                {new Position(42, 44), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40, 4*60},
-                {new Position(52, 44), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(62, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 5*60},
-                {new Position(72, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(82, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(92, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(2, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60}};
+                {new Position(1000, 1000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(5010, 5010), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(1000, 9000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(9000, 1000), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(2000, 4000), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(7000, 100), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 5 * 60},
+                {new Position(200, 4000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(3000, 8000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(5000, 7000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60},
+                {new Position(4000, 6000), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 0, 0, 0, 8 * 60}};
         //Object reference = new Object();
         // Object aargs[] = new Object[1];
         //aargs[0]=reference;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 10; i++) {
             try {
                 Thread.sleep(2);
             } catch (InterruptedException e) {
