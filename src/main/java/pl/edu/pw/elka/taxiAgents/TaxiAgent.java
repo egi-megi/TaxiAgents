@@ -151,7 +151,7 @@ public class TaxiAgent extends Agent {
         } else {
             pricePerKilometer = 3.0;
         }
-        priceForAllDistance = distance * pricePerKilometer;
+        priceForAllDistance = distance * pricePerKilometer *0.01;
             return priceForAllDistance;
     }
 

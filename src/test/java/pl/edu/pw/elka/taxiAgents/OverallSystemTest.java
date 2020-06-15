@@ -66,12 +66,9 @@ public class OverallSystemTest {
         rt.shutDown();
     }
 
-/*
+
     @Test
     public void quryingTaxiForClientTest() throws StaleProxyException, IOException, InterruptedException, UnreadableException {
-           // CallTaxi ct = new CallTaxi(new Position(1000, 1000), new Position(1100, 1100), false, false, false, 1, "normal");
-
-           // ACLMessage message = acClient.getO2AInterface(ITestClient.class).runMessage("callCenter", ct);
 
             //Check if Taxi response to query of CallCenter about order if Taxi meets all requirements
             CallCenterToTaxi cct=new CallCenterToTaxi(new Position(1000, 1000), new Position(1050, 1050), false, false, false, 1, "normal","1");
@@ -82,7 +79,7 @@ public class OverallSystemTest {
             Assertions.assertEquals("1",tcc.getQueryID(),"Query id should 1 because we set it previously ");
 
 
-    }*/
+    }
 
 
 
@@ -120,6 +117,7 @@ public class OverallSystemTest {
             CallTaxi cct5=new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), false, false, false, 5, "normal");
             ACLMessage message5 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct5);
             CallCenterToClient cctc5=(CallCenterToClient) message5.getContentObject();
+            Assertions.assertEquals("0",cctc5.getTaxiName().split("@")[0],"Taxi name should 0 (name are from 0 not form 1) because taxi 1 can take 5 passengers.");
             Assertions.assertEquals("0",cctc5.getTaxiName().split("@")[0],"Taxi name should 0 (name are from 0 not form 1) because taxi 1 can take 5 passengers.");
 
     }
