@@ -85,7 +85,6 @@ public class CallCenter extends Agent
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
-                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         bestTaxiMeanIncome = bestTaxi.getTodayEarnings()/bestTaxi.getWorkingTimeInThisDay();
                     }
                     if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
@@ -94,7 +93,6 @@ public class CallCenter extends Agent
                     {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
-                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         break;
                     }
                     thisTaxiMeanIncome = thisTaxi.getTodayEarnings()/thisTaxi.getWorkingTimeInThisDay();
@@ -105,7 +103,6 @@ public class CallCenter extends Agent
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
-                            pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         }
                     } else if (bestTaxiMeanIncome == thisTaxiMeanIncome)
                         {
@@ -113,7 +110,16 @@ public class CallCenter extends Agent
                                 bestTaxi = thisTaxi;
                                 bestTaxiMessage = entry.getValue();
                                 bestTaxiMeanIncome = thisTaxiMeanIncome;
-                                pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
+                            }
+                            else if (bestTaxi.getTimeToPickUpClient() == thisTaxi.getTimeToPickUpClient())
+                            {
+                                if(bestTaxi.getTimeFromLastClient() < thisTaxi.getTimeFromLastClient())
+                                {
+                                    bestTaxi = thisTaxi;
+                                    bestTaxiMessage = entry.getValue();
+                                    bestTaxiMeanIncome = thisTaxiMeanIncome;
+                                    pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
+                                }
                             }
                         }
                         else if ( bestTaxi.getTimeToPickUpClient() > thisTaxi.getTimeToPickUpClient()) {
@@ -123,7 +129,6 @@ public class CallCenter extends Agent
                             bestTaxi = thisTaxi;
                             bestTaxiMessage = entry.getValue();
                             bestTaxiMeanIncome = thisTaxiMeanIncome;
-                            pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         }
                     }
 
@@ -131,7 +136,6 @@ public class CallCenter extends Agent
                     {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
-                        pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
                         break;
                     }
                 }
