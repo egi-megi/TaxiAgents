@@ -18,6 +18,12 @@ import pl.edu.pw.elka.taxiAgents.messages.*;
 import java.io.IOException;
 import java.util.LinkedList;
 
+
+/**
+ * Class representing client. It sends ride request to CallCenter and receives confirmation if taxi assigned.
+ * If DisplayAgent exist, it also sends client status to DisplayAgent. Status is sent two times. When client sends
+ * request and when taxi is assigned.
+ */
 public class Client extends Agent implements ClientI {
     Position startPosition;
 
@@ -44,19 +50,19 @@ public class Client extends Agent implements ClientI {
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
-                    /**if (msgI!=null) {
-
-                     System.out.println("== Answer to Client" + " <- "
-                     + msgI.getContent() + " from "
-                     + msgI.getSender().getName());
-                     }*/
-                     block();
+                    block();
                 }
             }
         });
 
     }
 
+    /**
+     * Sends client status to DisplayAgent
+     * @param clientPosition Pickup position.
+     * @param isTaxiAssigned True if taxi is already assigned.
+     * @param timeToPickup Time to pickup.
+     */
     void sendStatusToDisplay(Position clientPosition, boolean isTaxiAssigned, long timeToPickup) {
         ACLMessage status = new ACLMessage(ACLMessage.INFORM);
         status.addReceiver(new AID("display", AID.ISLOCALNAME));
@@ -69,6 +75,10 @@ public class Client extends Agent implements ClientI {
         }
     }
 
+    /**
+     * Checks in AMSAgent if DisplayAgent exists.
+     * @return True if exists.
+     */
     boolean isDisplayAgentPresent() {
         AMSAgentDescription description = new AMSAgentDescription();
         description.setName(new AID("display", AID.ISLOCALNAME));
@@ -81,7 +91,18 @@ public class Client extends Agent implements ClientI {
         return (foundAgents != null && foundAgents.length > 0);
     }
 
-
+    /**
+     * Sends request to CallCenter.
+     * @param from Pickup position.
+     * @param to Destination.
+     * @param ifBabySeat Is baby seat required.
+     * @param ifHomePet Is pet traveling.
+     * @param ifLargeLuggage Is large luggage carried.
+     * @param numberOFPassengers Number of passengers.
+     * @param kindOfClient Vip itp.
+     * @return
+     * @throws IOException
+     */
     @Override
     public String doQuery(Position from,
                           Position to,
@@ -113,13 +134,8 @@ public class Client extends Agent implements ClientI {
  // Create a default profile
         Profile p = new ProfileImpl();
         // Create a new non-main container, connecting to the default
-        // main container (i.e. on this host, port 1099)
         ContainerController cc = rt.createAgentContainer(p);
-        // Create a new agent, a DummyAgent
-        // and pass it a reference to an Object
-        //Object reference = new Object();
-        //Object aargs[] = new Object[1];
-        //aargs[0]=reference;
+        // Create a new agent
         AgentController acClient = cc.createNewAgent("client-"+System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.Client", args);
         // Fire up the agent
         acClient.start();
