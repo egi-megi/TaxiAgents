@@ -19,15 +19,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Thread.*;
-
+/**
+ * Class that represents single taxi agent. At startup, class sends message to call center to register a taxi.
+ * Than it waits for clients.
+ * When message with possible ride from call center arrives, taxi sends an offer. If offer is approved and confirmation
+ * message is received, taxi starts it's job and goes for client.
+ * After picking up a client, taxi goes to the destination. As soon as destination is reached taxi becomes free again.
+ * Taxi sends offers only if it's free, goes home or is close to the client destination.
+ * Taxi does not send offer if it does not fulfill requirements (e.g. number of seats).
+ * Agent checks if DisplayAgent exists. If so, it consequently sends its status to DisplayAgent.
+ */
 public class TaxiAgent extends Agent {
 
+    //Taxi types
     final String KIND_OF_CARS_VAN = "van";
     final String KIND_OF_CARS_COMBI = "combi";
     final String KIND_OF_CARS_SEDAN = "sedan";
     final String KIND_OF_CARS_VIP = "vip";
 
+    //Taxi statuses
     public final static String DRIVER_STATUS_FREE = "free";
     public final static String DRIVER_STATUS_NEAR_END = "nearEnd";
     public final static String DRIVER_STATUS_GOES_HOME = "goesHome";
@@ -36,13 +46,14 @@ public class TaxiAgent extends Agent {
     public final static String DRIVER_STATUS_BREAK = "break";
     public final static String DRIVER_STATUS_VEHICLE_BREAKDOWN = "vehicleBreakdown";
 
+    //Taxi positions
     Position positionTaxiNow;
     Position positionTaxiHome;
 
+    //Taxi parameters
     boolean ifBabySeat;
     boolean ifHomePet;
     String kindOFCar;
-    //enum kindOFCar {sedan, combi, van, vip};
     int numberOFPassengers;
     boolean ifStandByForSpecialTask;
     boolean ifExperiencedDriver;
@@ -52,25 +63,30 @@ public class TaxiAgent extends Agent {
     int timeFromLastClient;
     double timeToEndOrder = 0;
     int workingTime; // time in seconds
+    long endWorkingTime; // time in milliseconds
+    double maximumSpeed = 0; // points per second
 
-    long endWorkingTime; // time in milisec
-
-    double maximumSpeed = 0; ///< points per second
+    //Current job parameters
     double distanceToClient;
     double distanceWithClient;
     double timeToPickUpClient;
     double priceForAllDistance;
     double timeWithClient;
 
-
-    boolean isRidingWithClient = false; ///< specifies if client is in a taxi
-    boolean isMoving = false; ///< specifies if taxi is moving
+    //Taxi state
+    boolean isRidingWithClient = false; // specifies if client is in a taxi
+    boolean isMoving = false; // specifies if taxi is moving
     Position clientDestination;
     Position clientStartPoint;
-    List<Position> route = new ArrayList<>(); ///< remaining route to destination
+    List<Position> route = new ArrayList<>(); // remaining route to destination
 
+    //Other
     boolean isDisplayAgentPresent = false;
 
+    /**
+     * Assigning class attributes.
+     * @param taxisData Attributes as object.
+     */
     void setupFromArgs(Object[] taxisData) {
         positionTaxiNow = (Position) (taxisData[0]);
         positionTaxiHome = (Position) (taxisData[1]);
@@ -162,25 +178,21 @@ public class TaxiAgent extends Agent {
     }
 
     protected void setup() {
-        setupFromArgs(getArguments());
+        setupFromArgs(getArguments()); // setting up agent attributes
+        if (ifExperiencedDriver) maximumSpeed = 40.0;
+        else maximumSpeed = 30.0;
 
-        if (ifExperiencedDriver) {
-            maximumSpeed = 40.0;
-        } else {
-            maximumSpeed = 30.0;
-        }
-
+        //Delays used by Block() function in agent's behaviours
         long movingDelay = 1000;
         long schedulerDelay = 500;
         long statusSenderDelay = 1000;
         long displayAgentCheckerDelay = 3000;
 
-        addBehaviour(new MovementBehaviour(this, movingDelay));
-        addBehaviour(new TaskScheduler(this, schedulerDelay));
-        addBehaviour(new DisplayAgentPresenceChecker(this, displayAgentCheckerDelay));
-        addBehaviour(new StatusSender(this, statusSenderDelay));
-
-        addBehaviour(new CyclicBehaviour(this)
+        addBehaviour(new MovementBehaviour(this, movingDelay)); //Movement activity
+        addBehaviour(new TaskScheduler(this, schedulerDelay)); //Starting and finishing ride, changing status WORKING/FREE
+        addBehaviour(new DisplayAgentPresenceChecker(this, displayAgentCheckerDelay)); //Consequently checking if displayAgent alive
+        addBehaviour(new StatusSender(this, statusSenderDelay)); //Sending status to displayAgent (if alive)
+        addBehaviour(new CyclicBehaviour(this) //Receiving messages
         {
             public void action() {
                 ACLMessage msg = receive();
@@ -331,8 +343,7 @@ public class TaxiAgent extends Agent {
         Runtime rt = Runtime.instance();
         // Create a default profile
         Profile p = new ProfileImpl();
-        // Create a new non-main container, connecting to the default
-        // main container (i.e. on this host, port 1099)
+        // Create a new non-main container, connecting to the default main container
         ContainerController cc = rt.createAgentContainer(p);
         // Create a new agent, a DummyAgent
         // and pass it a reference to an Object
@@ -383,7 +394,7 @@ public class TaxiAgent extends Agent {
         public void action() {
             if(!isMoving || route.isEmpty()) { // if not moving or nowhere to go - do nothing
                 previousActionTime = 0;
-                block(delay); //TODO może da się tu zrobić oczekiwanie na wiadomość
+                block(delay);
                 return;
             }
 
@@ -418,7 +429,7 @@ public class TaxiAgent extends Agent {
         /**
          * Method invoked when destination is reached. It stops movement, resets previousActionTime, and informs others about the event
          */
-        void destinationReached() { //TODO kogo informować?
+        void destinationReached() {
             isMoving = false;
             previousActionTime = 0;
             System.out.println(" - " + myAgent.getLocalName() + " destination reached: " + positionTaxiNow.longitude + " " + positionTaxiNow.latitude);
@@ -431,7 +442,7 @@ public class TaxiAgent extends Agent {
      */
     class TaskScheduler extends CyclicBehaviour {
         long delay; ///< specifies time between invocations of action method (in milliseconds)
-        long timeOfLastJobEnd = System.currentTimeMillis();
+        long timeOfLastJobEnd = System.currentTimeMillis(); ///< time, when last job finished (required for calculating timeFromLastClient)
 
         TaskScheduler(Agent a, long delay) {
             super(a);
@@ -492,6 +503,9 @@ public class TaxiAgent extends Agent {
         }
     }
 
+    /**
+     * Behaviour that consequently sends taxi status to displayAgent (if exists).
+     */
     class StatusSender extends CyclicBehaviour {
         long delay; ///< specifies time between invocations of action method (in milliseconds)
 
@@ -516,10 +530,13 @@ public class TaxiAgent extends Agent {
         }
     }
 
+    /**
+     * Class that checks if display agent is alive.
+     */
     class DisplayAgentPresenceChecker extends CyclicBehaviour {
         long delay; ///< specifies time between invocations of action method (in milliseconds)
-        boolean toggleAction;
-        AMSAgentDescription description;
+        boolean toggleAction; ///< boolean that ensure that only every second action() sends status (action is probably invoked too quickly by message caused by AMSService.search)
+        AMSAgentDescription description; ///< description of searched Agent (name "display")
 
         public DisplayAgentPresenceChecker(Agent a, long delay) {
             super(a);
