@@ -351,14 +351,14 @@ public class TaxiAgent extends Agent {
         Object[][] taxisData = new Object[][]{
                 {new Position(500, 500), new Position(33, 33), true, true, "combi", 4, true, true, "free", 5.5, 150, 20, 40, 60},
                 {new Position(950, 950), new Position(33, 33), true, true, "combi", 8, true, true, "free", 5.5, 150, 20, 40, 160},
-                {new Position(32, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(42, 44), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40, 4*60},
-                {new Position(52, 44), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(62, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 5*60},
-                {new Position(72, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(82, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(92, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
-                {new Position(2, 44), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60}};
+                {new Position(8032, 1044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(7042, 2044), new Position(33, 33), true, true, "vip", 3, true, true, "free", 5.5, 150, 20, 40, 4*60},
+                {new Position(6052, 3044), new Position(33, 33), true, true, "sedan", 3, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(5062, 4044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 5*60},
+                {new Position(4072, 5044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(3082, 6044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(2092, 7044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60},
+                {new Position(1002, 8044), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 20, 40, 8*60}};
         //Object reference = new Object();
         // Object aargs[] = new Object[1];
         //aargs[0]=reference;
