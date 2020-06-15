@@ -260,6 +260,7 @@ public class TaxiAgent extends Agent {
                             System.out.println("The taxi finally confirms that the client has been picked up for " + timeToPickUpClient + " sec.");
                         }
                     } catch (UnreadableException | IOException e) {
+                        System.err.println("sender: "+msg.getSender()+" \n"+msg.toString());
                         e.printStackTrace();
                     }
 

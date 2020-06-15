@@ -13,18 +13,16 @@ import java.io.Serializable;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class TestClient extends Agent implements ITestClient{
+public class TestClient extends Agent implements ITestClient {
     public TestClient() {
-        registerO2AInterface(ITestClient.class,this);
+        registerO2AInterface(ITestClient.class, this);
     }
 
-    BlockingQueue<ACLMessage> responseQ=new ArrayBlockingQueue<>(10);
+    BlockingQueue<ACLMessage> responseQ = new ArrayBlockingQueue<>(10);
 
-    protected void setup()
-    {
+    protected void setup() {
 
-        addBehaviour(new CyclicBehaviour(this)
-        {
+        addBehaviour(new CyclicBehaviour(this) {
             public void action() {
 
                 ACLMessage msgI = receive();
@@ -40,14 +38,13 @@ public class TestClient extends Agent implements ITestClient{
     @Override
     public ACLMessage runMessage(String dest, Serializable o) throws IOException, InterruptedException {
 
-        ACLMessage msg= new ACLMessage(ACLMessage.INFORM);
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
         msg.addReceiver(new AID(dest, AID.ISLOCALNAME));
 
 
         msg.setContentObject(o);
         send(msg);
-
 
 
         return responseQ.take();
