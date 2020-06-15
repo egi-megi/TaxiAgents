@@ -47,11 +47,11 @@ public class OverallSystemTest extends TestCommonInit {
         CallTaxi cct = new CallTaxi(new Position(1000, 1000), new Position(1010, 1010), false, false, false, 1, "normal");
         ACLMessage message = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct);
         Assertions.assertTrue(message.getContentObject() instanceof CallCenterToClient);
-/*
+
         // Check if was choosen taxi which is closer to the client
         CallCenterToClient cctc = (CallCenterToClient) message.getContentObject();
         Assertions.assertEquals("1", cctc.getTaxiName().split("@")[0], "Taxi name should be 1 (name are from 0 not form 1) because it has smaller time and is free to pick up the client ");
-
+/*
         // Check if was choosen taxi with baby seat
         CallTaxi cct2 = new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), true, false, false, 1, "normal");
         ACLMessage message2 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct2);
