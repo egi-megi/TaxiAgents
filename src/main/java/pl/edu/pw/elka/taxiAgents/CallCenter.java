@@ -40,7 +40,7 @@ public class CallCenter extends Agent
     }
     static long maxAgentsResponseWaitingTime = 5000L;
     static double maxLongerWaitingTime = 5d;
-    static double maxClientWaitingTime = 20d;
+    static double maxClientWaitingTime = 20.0;
     static double maxTaxiFreeTime = 20d;
     public final static String DRIVER_STATUS_GOES_HOME = "goesHome";
 
@@ -81,7 +81,8 @@ public class CallCenter extends Agent
                 for (Map.Entry<String, ACLMessage> entry : pq.acceptedMessages.entrySet()) {
                     thisMesg = entry.getValue().getContentObject();
                     thisTaxi = (TaxiToCallCenter) thisMesg;
-                    thisDriverStatus = taxis.get(thisTaxi);
+                    thisDriverStatus = taxis.get(entry.getValue().getSender());
+                    assert thisDriverStatus!=null;
                     if (bestTaxi == null) {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
@@ -89,7 +90,7 @@ public class CallCenter extends Agent
                     }
                     if (thisTaxi.getTimeToPickUpClient() < shortestTime) {
                         shortestTime = thisTaxi.getTimeToPickUpClient(); }
-                    if(thisDriverStatus == DRIVER_STATUS_GOES_HOME && thisTaxi.getTimeToPickUpClient()<maxClientWaitingTime)
+                    if(thisDriverStatus.equalsIgnoreCase(DRIVER_STATUS_GOES_HOME) && thisTaxi.getTimeToPickUpClient()<maxClientWaitingTime)
                     {
                         bestTaxi = thisTaxi;
                         bestTaxiMessage = entry.getValue();
@@ -149,14 +150,6 @@ public class CallCenter extends Agent
     }
 
 
-    //TODO  while (!pq.acceptedMessages.isEmpty())
-    //        {
-    //            thisTaxi = (TaxiToCallCenter) pq.acceptedMessages.poll();
-    //            if (thisTaxi.getTimeToPickUp() < bestTaxi.getTimeToPickUp())
-    //            {
-    //                bestTaxi = thisTaxi;
-    //            }
-    //        }: dodawac do nie j na podstawie wiadomosci2
     protected void setup()
     {
 
