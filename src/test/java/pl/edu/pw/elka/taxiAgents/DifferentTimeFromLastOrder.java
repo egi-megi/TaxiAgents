@@ -20,7 +20,7 @@ public class DifferentTimeFromLastOrder extends TestCommonInit {
     protected Object[][] getTaxisData() {
         return new Object[][]{
                 {new Position(860, 860), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 5, 5 * 1000, 600},
-                {new Position(860, 860), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 10, 5 * 1000, 600},};
+                {new Position(860, 860), new Position(33, 33), true, true, "van", 8, true, true, "free", 4.5, 200, 50, 5 * 1000, 600},};
 
     }
 
