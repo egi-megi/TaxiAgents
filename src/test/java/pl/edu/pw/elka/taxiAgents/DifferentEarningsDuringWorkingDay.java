@@ -16,8 +16,8 @@ public class DifferentEarningsDuringWorkingDay extends TestCommonInit {
     @Override
     protected Object[][] getTaxisData() {
         return new Object[][]{
-                {new Position(860, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 200, 5, 20, 600},
-                {new Position(860, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 5, 20, 600},
+                {new Position(860, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 200, 5, 0, 600},
+                {new Position(860, 760), new Position(33, 33), true, true, "van", 8, true, true, "free", 5.5, 150, 5, 0, 600},
                 };
     }
 
