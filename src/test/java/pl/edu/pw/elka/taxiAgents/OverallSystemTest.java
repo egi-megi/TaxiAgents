@@ -51,32 +51,7 @@ public class OverallSystemTest extends TestCommonInit {
         // Check if was choosen taxi which is closer to the client
         CallCenterToClient cctc = (CallCenterToClient) message.getContentObject();
         Assertions.assertEquals("1", cctc.getTaxiName().split("@")[0], "Taxi name should be 1 (name are from 0 not form 1) because it has smaller time and is free to pick up the client ");
-/*
-        // Check if was choosen taxi with baby seat
-        CallTaxi cct2 = new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), true, false, false, 1, "normal");
-        ACLMessage message2 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct2);
-        CallCenterToClient cctc2 = (CallCenterToClient) message2.getContentObject();
-        Assertions.assertEquals("0", cctc2.getTaxiName().split("@")[0], "Taxi name should 0 (name are from 0 not form 1) because taxi 1 has baby seat (and is free to pick up the client but has longer time too pick up client).");
 
-        // Check if was choosen taxi which can take a home pet
-        CallTaxi cct3 = new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), false, true, false, 1, "normal");
-        ACLMessage message3 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct3);
-        CallCenterToClient cctc3 = (CallCenterToClient) message3.getContentObject();
-        Assertions.assertEquals("0", cctc3.getTaxiName().split("@")[0], "Taxi name should 0 (name are from 0 not form 1) because taxi 1 has baby seat (and is free to pick up the client but has longer time too pick up client).");
-
-        // Check if was choosen taxi which can take a large luggage
-        CallTaxi cct4 = new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), false, false, true, 1, "normal");
-        ACLMessage message4 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct4);
-        CallCenterToClient cctc4 = (CallCenterToClient) message4.getContentObject();
-        Assertions.assertEquals("0", cctc4.getTaxiName().split("@")[0], "Taxi name should 0 (name are from 0 not form 1) because taxi 1 can take large luggage.");
-
-        // Check if was choosen taxi which can take 5 passengers
-        CallTaxi cct5 = new CallTaxi(new Position(1000, 1000), new Position(1050, 1050), false, false, false, 5, "normal");
-        ACLMessage message5 = acClient.getO2AInterface(ITestClient.class).runMessage("CallCenter", cct5);
-        CallCenterToClient cctc5 = (CallCenterToClient) message5.getContentObject();
-        Assertions.assertEquals("0", cctc5.getTaxiName().split("@")[0], "Taxi name should 0 (name are from 0 not form 1) because taxi 1 can take 5 passengers.");
-        Assertions.assertEquals("0", cctc5.getTaxiName().split("@")[0], "Taxi name should 0 (name are from 0 not form 1) because taxi 1 can take 5 passengers.");
-*/
     }
 
 

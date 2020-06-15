@@ -167,7 +167,7 @@ public class TaxiAgent extends Agent {
         } else {
             pricePerKilometer = 3.0;
         }
-        priceForAllDistance = distance * pricePerKilometer *0.01;
+        priceForAllDistance = distance * pricePerKilometer *0.001;
             return priceForAllDistance;
     }
 
@@ -217,10 +217,10 @@ public class TaxiAgent extends Agent {
                                 } else {
                                     long leftTimeToGoHome = (endWorkingTime - System.currentTimeMillis()) / 1000;
                                     if (leftTimeToGoHome < 30) {
-                                        driverStatus.equalsIgnoreCase(DRIVER_STATUS_GOES_HOME);
+                                        driverStatus=DRIVER_STATUS_GOES_HOME;
                                     }
                                     if (leftTimeToGoHome <= 0) {
-                                        driverStatus.equalsIgnoreCase(DRIVER_STATUS_UNAVAILABLE);
+                                        driverStatus=DRIVER_STATUS_UNAVAILABLE;
                                     }
                                     timeToPickUpClient = computeTimeWithTimeToEndOrder(distanceToClient);
                                     distanceWithClient = computeDistance(cct.getFrom(), cct.getTo());
@@ -448,10 +448,12 @@ public class TaxiAgent extends Agent {
         TaskScheduler(Agent a, long delay, long longTimeFromLastClient) {
             super(a);
             this.delay = delay;
-            this.timeOfLastJobEnd = System.currentTimeMillis()-(longTimeFromLastClient*1000);
+            this.timeOfLastJobEnd=System.currentTimeMillis()-(longTimeFromLastClient*1000);
         }
 
         public void action() {
+            timeToEndOrder = 0;
+            timeFromLastClient = 0;
 
             //things to do if driver is working
             if(driverStatus.equals(DRIVER_STATUS_WORKING)) {

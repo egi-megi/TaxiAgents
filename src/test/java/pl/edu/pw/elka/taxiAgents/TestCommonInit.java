@@ -21,15 +21,11 @@ public abstract class TestCommonInit {
         // Get a hold on JADE runtime
         rt = Runtime.instance();
         // Create a default profile
-
-
         Profile p = new ProfileImpl();
         // Create a new non-main container, connecting to the default
-        // main container (i.e. on this host, port 1099)
         rt.createMainContainer(new ProfileImpl(true));
         ContainerController ccAgent = rt.createAgentContainer(p);
-        // Create a new agent, a DummyAgent
-        // and pass it a reference to an Object
+        // Create a new agent
 
         AgentController ac = ccAgent.createNewAgent("CallCenter", "pl.edu.pw.elka.taxiAgents.CallCenter", new Object[0]);
         ac.start();
@@ -47,8 +43,6 @@ public abstract class TestCommonInit {
         }
         initTaxis(ccAgent);
 
-
-        // ContainerController ccClient = rt.createAgentContainer(p);
         acClient = ccAgent.createNewAgent("client-" + System.currentTimeMillis(), "pl.edu.pw.elka.taxiAgents.TestClient", new Object[0]);
         acClient.start();
     }
