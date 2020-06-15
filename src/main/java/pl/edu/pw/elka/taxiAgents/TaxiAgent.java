@@ -189,7 +189,7 @@ public class TaxiAgent extends Agent {
         long displayAgentCheckerDelay = 3000;
 
         addBehaviour(new MovementBehaviour(this, movingDelay)); //Movement activity
-        addBehaviour(new TaskScheduler(this, schedulerDelay)); //Starting and finishing ride, changing status WORKING/FREE
+        addBehaviour(new TaskScheduler(this, schedulerDelay,timeFromLastClient)); //Starting and finishing ride, changing status WORKING/FREE
         addBehaviour(new DisplayAgentPresenceChecker(this, displayAgentCheckerDelay)); //Consequently checking if displayAgent alive
         addBehaviour(new StatusSender(this, statusSenderDelay)); //Sending status to displayAgent (if alive)
         addBehaviour(new CyclicBehaviour(this) //Receiving messages
@@ -445,15 +445,16 @@ public class TaxiAgent extends Agent {
         long delay; ///< specifies time between invocations of action method (in milliseconds)
         long timeOfLastJobEnd = System.currentTimeMillis(); ///< time, when last job finished (required for calculating timeFromLastClient)
 
-        TaskScheduler(Agent a, long delay) {
+        TaskScheduler(Agent a, long delay, long longTimeFromLastClient) {
             super(a);
             this.delay = delay;
+            this.timeOfLastJobEnd=System.currentTimeMillis()-(longTimeFromLastClient);
         }
 
         public void action() {
             //TODO wtf - ta akcja zawsze zeruje liczniki taksowki
-            timeToEndOrder = 0;
-            timeFromLastClient = 0;
+//            timeToEndOrder = 0;
+//            timeFromLastClient = 0;
 
             //things to do if driver is working
             if(driverStatus.equals(DRIVER_STATUS_WORKING)) {
