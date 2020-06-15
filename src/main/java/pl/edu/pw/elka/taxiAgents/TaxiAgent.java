@@ -443,12 +443,12 @@ public class TaxiAgent extends Agent {
      */
     class TaskScheduler extends CyclicBehaviour {
         long delay; ///< specifies time between invocations of action method (in milliseconds)
-        long timeOfLastJobEnd = System.currentTimeMillis(); ///< time, when last job finished (required for calculating timeFromLastClient)
+        long timeOfLastJobEnd; ///< time, when last job finished (required for calculating timeFromLastClient)
 
         TaskScheduler(Agent a, long delay, long longTimeFromLastClient) {
             super(a);
             this.delay = delay;
-            this.timeOfLastJobEnd=System.currentTimeMillis()-(longTimeFromLastClient*1000);
+            this.timeOfLastJobEnd = System.currentTimeMillis()-(longTimeFromLastClient*1000);
         }
 
         public void action() {
