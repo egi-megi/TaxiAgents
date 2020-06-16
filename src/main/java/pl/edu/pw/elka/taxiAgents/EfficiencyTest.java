@@ -119,15 +119,20 @@ public class EfficiencyTest {
             }
         }
 
-
-
     }
 
 
     public static void main(String[] args) throws StaleProxyException, FileNotFoundException {
             EfficiencyTest et=new EfficiencyTest();
+
             int numTaxis=100;
             int numClients=100;
+            System.out.println(args);
+        if (args.length == 2) {
+            numTaxis = Integer.parseInt(args[0]);
+            numClients = Integer.parseInt(args[1]);
+        }
+
             et.setup();
             et.initTaxis(numTaxis);
 
