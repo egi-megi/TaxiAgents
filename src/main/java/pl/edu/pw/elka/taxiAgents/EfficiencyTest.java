@@ -84,7 +84,7 @@ public class EfficiencyTest {
         AgentController acClient = ccAgent.createNewAgent("client-"+num, "pl.edu.pw.elka.taxiAgents.Client", new Object[0]);
         // Fire up the agent
         acClient.start();
-        acClient.getO2AInterface(ClientI.class).doQuery(new Position(0 + num*50, 2000), new Position(3000, 3000), false, false, false, 1, "normal");
+        acClient.getO2AInterface(ClientI.class).doQuery(new Position(0 + num*50, 2000), new Position(3000, 3000), false, false, false, 1, "normal",true);
 
         acClient.kill();
     }
@@ -126,8 +126,8 @@ public class EfficiencyTest {
 
     public static void main(String[] args) throws StaleProxyException, FileNotFoundException {
             EfficiencyTest et=new EfficiencyTest();
-            int numTaxis=5;
-            int numClients=5;
+            int numTaxis=100;
+            int numClients=100;
             et.setup();
             et.initTaxis(numTaxis);
 

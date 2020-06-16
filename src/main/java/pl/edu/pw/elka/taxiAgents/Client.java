@@ -30,10 +30,8 @@ public class Client extends Agent implements ClientI {
     Position startPosition;
     BlockingQueue<String> responseQ = new ArrayBlockingQueue<>(10);
 
-    boolean displayPresent;
     public Client() {
         registerO2AInterface(ClientI.class,this);
-        displayPresent=isDisplayAgentPresent();
     }
 
     protected void setup()
@@ -118,7 +116,8 @@ public class Client extends Agent implements ClientI {
                           boolean ifHomePet,
                           boolean ifLargeLuggage,
                           int numberOFPassengers,
-                          String kindOfClient) throws IOException, InterruptedException {
+                          String kindOfClient,
+                          boolean skipDisplay) throws IOException, InterruptedException {
 
         startPosition = from;
 
@@ -130,7 +129,7 @@ public class Client extends Agent implements ClientI {
         msg.setContentObject(ct);
         send(msg);
 
-        if(displayPresent) {
+        if(!skipDisplay && isDisplayAgentPresent()) {
             sendStatusToDisplay(startPosition, false, Long.MAX_VALUE);
         }
         String resp=responseQ.take();
@@ -138,7 +137,30 @@ public class Client extends Agent implements ClientI {
         return resp;
     }
 
+    /**
+     * Sends request to CallCenter.
+     * @param from Pickup position.
+     * @param to Destination.
+     * @param ifBabySeat Is baby seat required.
+     * @param ifHomePet Is pet traveling.
+     * @param ifLargeLuggage Is large luggage carried.
+     * @param numberOFPassengers Number of passengers.
+     * @param kindOfClient Vip itp.
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public String doQuery(Position from,
+                          Position to,
+                          boolean ifBabySeat,
+                          boolean ifHomePet,
+                          boolean ifLargeLuggage,
+                          int numberOFPassengers,
+                          String kindOfClient
+                          ) throws IOException, InterruptedException {
+        return doQuery(from,to,ifBabySeat,ifHomePet,ifLargeLuggage,numberOFPassengers,kindOfClient,false);
 
+    }
 
 
 

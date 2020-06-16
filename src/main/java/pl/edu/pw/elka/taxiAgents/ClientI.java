@@ -10,4 +10,14 @@ public interface ClientI {
                    boolean ifLargeLuggage,
                    int numberOFPassengers,
                    String kindOfClient) throws IOException, InterruptedException;
+
+    String doQuery(Position from,
+                   Position to,
+                   boolean ifBabySeat,
+                   boolean ifHomePet,
+                   boolean ifLargeLuggage,
+                   int numberOFPassengers,
+                   String kindOfClient,
+                   boolean skipDisplay) throws IOException, InterruptedException;
+
 }
