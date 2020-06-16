@@ -125,8 +125,8 @@ public class EfficiencyTest {
     public static void main(String[] args) throws StaleProxyException, FileNotFoundException {
             EfficiencyTest et=new EfficiencyTest();
 
-            int numTaxis=100;
-            int numClients=100;
+            int numTaxis=200;
+            int numClients=200;
             System.out.println(args);
         if (args.length == 2) {
             numTaxis = Integer.parseInt(args[0]);
@@ -146,7 +146,7 @@ public class EfficiencyTest {
             long endTime=System.currentTimeMillis();
             System.out.println("\n\n\n\nWorking time with "+numTaxis+" taxis and "+numClients+" clients is "+(endTime-startTime)+"ms");
             File output=new File("ef-test-"+numTaxis+"-"+numClients+".txt");
-            try (PrintStream ps=new PrintStream(new FileOutputStream(output))) {
+            try (PrintStream ps=new PrintStream(new FileOutputStream(output,true))) {
                 ps.println("Working time with;"+numTaxis+"; taxis and ;"+numClients+"; clients is ;"+(endTime-startTime)+";ms");
             }
             et.rt.shutDown();
