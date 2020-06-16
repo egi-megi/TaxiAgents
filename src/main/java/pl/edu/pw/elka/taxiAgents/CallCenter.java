@@ -195,7 +195,7 @@ public class CallCenter extends Agent
                                 ProcessingQuery pq = activeQueries.get(tcc.getQueryID());
                                 if(pq == null)
                                 {
-                                    System.out.println("There is no such query like this taxi answeared");
+                                    System.out.println("There is no such query like this taxi answered");
                                     break;
                                 }
                                 System.out.println(pq.id);
