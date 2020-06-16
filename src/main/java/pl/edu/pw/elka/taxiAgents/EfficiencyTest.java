@@ -51,15 +51,12 @@ public class EfficiencyTest {
     }
 
 
-
-
     void initTaxis(int numTaxis) throws StaleProxyException {
-        //TODO uruchomic tyle taksowek ile jest w argumencie
-        Object[][] taxisData = getTaxisData();
+        Object[][] taxisData = getTaxisData(numTaxis);
         taxisNames = new String[taxisData.length];
         for (int i = 0; i < taxisData.length; i++) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -71,11 +68,14 @@ public class EfficiencyTest {
     }
 
 
-    protected Object[][] getTaxisData() {
-        return new Object[][]{
-                {new Position(150, 2000), new Position(33, 33), true, true, "van", 8, true, true, "free", 0.0, 0, 0, 0, 600},
-                {new Position(350, 2000), new Position(33, 33), true, true, "van", 8, true, true, "free", 0.0, 0, 0, 0, 600},};
+    protected Object[][] getTaxisData(int numTaxis) {
+        Object[][] taxisList = new Object[numTaxis][14];
+        for (int i = 0; i < numTaxis; i++) {
+            int pos = i * 50;
+            taxisList[i] = new Object[]{new Position(0 + pos, 2000), new Position(33+ pos, 33), true, true, "van", 8, true, true, "free", 0.0, 0, 0, 0, 6000};
+        }
 
+        return taxisList;
     }
 
 
@@ -84,8 +84,7 @@ public class EfficiencyTest {
         AgentController acClient = ccAgent.createNewAgent("client-"+num, "pl.edu.pw.elka.taxiAgents.Client", new Object[0]);
         // Fire up the agent
         acClient.start();
-        //TODO: niech kliencie jeszdza z roznych pozycji do roznych
-        acClient.getO2AInterface(ClientI.class).doQuery(new Position(100+num*200, 2100), new Position(3000, 3000), false, false, false, 1, "normal");
+        acClient.getO2AInterface(ClientI.class).doQuery(new Position(0+num*50, 2000), new Position(3000, 3000), false, false, false, 1, "normal");
         acClient.kill();
     }
 
@@ -126,13 +125,13 @@ public class EfficiencyTest {
 
     public static void main(String[] args) throws StaleProxyException, FileNotFoundException {
             EfficiencyTest et=new EfficiencyTest();
-            int numTaxis=10;
-            int numClients=2;
+            int numTaxis=20;
+            int numClients=10;
             et.setup();
             et.initTaxis(numTaxis);
 
         try {
-            Thread.sleep(3000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
