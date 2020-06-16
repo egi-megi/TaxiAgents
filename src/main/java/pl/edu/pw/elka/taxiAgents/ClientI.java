@@ -9,5 +9,5 @@ public interface ClientI {
                    boolean ifHomePet,
                    boolean ifLargeLuggage,
                    int numberOFPassengers,
-                   String kindOfClient) throws IOException;
+                   String kindOfClient) throws IOException, InterruptedException;
 }
