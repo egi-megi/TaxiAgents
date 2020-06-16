@@ -139,8 +139,9 @@ public class TaxiAgent extends Agent {
 
     boolean queryOnWayToHome(Position pTo) {
         if(computeDistance(positionTaxiNow, positionTaxiHome) > 2*computeDistance(pTo, positionTaxiHome)){
-            return true;}
-        else return false;
+            return true;
+        }
+        else {return false;}
     }
 
     double computeTime(double distance) {
@@ -195,8 +196,8 @@ public class TaxiAgent extends Agent {
         addBehaviour(new CyclicBehaviour(this) //Receiving messages
         {
             public void action() {
-                ACLMessage msg = receive();
-                if (msg != null) {
+                ACLMessage msg ;
+                while ((msg =receive())!= null) {
                     try {
                         Object o = msg.getContentObject();
                         if (o instanceof CallCenterToTaxi) {
