@@ -17,6 +17,8 @@ import pl.edu.pw.elka.taxiAgents.messages.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 
 /**
@@ -26,6 +28,7 @@ import java.util.LinkedList;
  */
 public class Client extends Agent implements ClientI {
     Position startPosition;
+    BlockingQueue<String> responseQ = new ArrayBlockingQueue<>(10);
 
     public Client() {
         registerO2AInterface(ClientI.class,this);
@@ -46,6 +49,7 @@ public class Client extends Agent implements ClientI {
                             CallCenterToClient ct = (CallCenterToClient) mesg;
                             if(isDisplayAgentPresent()) sendStatusToDisplay(startPosition, true, ct.getTimeToPickUp().longValue());
                             System.out.println("Taxi: " + ct.getTaxiName() + "pick me up for " + ct.getTimeToPickUp() + " sec.");
+                            responseQ.add("Taxi: " + ct.getTaxiName() + "pick me up for " + ct.getTimeToPickUp() + " sec.");
                         }
                     } catch (UnreadableException e) {
                         e.printStackTrace();
@@ -110,7 +114,7 @@ public class Client extends Agent implements ClientI {
                           boolean ifHomePet,
                           boolean ifLargeLuggage,
                           int numberOFPassengers,
-                          String kindOfClient) throws IOException {
+                          String kindOfClient) throws IOException, InterruptedException {
 
         startPosition = from;
 
@@ -124,11 +128,14 @@ public class Client extends Agent implements ClientI {
         System.out.println("Asking about picking me up.");
 
         if(isDisplayAgentPresent()) sendStatusToDisplay(startPosition, false, Long.MAX_VALUE);
-        return null;
+        return responseQ.take();
     }
 
 
-    public static void main(String[] args) throws StaleProxyException, IOException {
+
+
+
+    public static void main(String[] args) throws StaleProxyException, IOException, InterruptedException {
 // Get a hold on JADE runtime
  Runtime rt = Runtime.instance();
  // Create a default profile

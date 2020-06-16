@@ -144,6 +144,9 @@ public class CallCenter extends Agent
         } catch (UnreadableException e) {
             e.printStackTrace();
         }
+        if (bestTaxi==null) {
+            return null;
+        }
         pq.price = bestTaxi.getPriceForAllDistance();
         pq.timeToPickUp = bestTaxi.getTimeToPickUpClient();
         return bestTaxiMessage;
