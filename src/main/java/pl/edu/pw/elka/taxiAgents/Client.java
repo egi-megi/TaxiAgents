@@ -30,8 +30,10 @@ public class Client extends Agent implements ClientI {
     Position startPosition;
     BlockingQueue<String> responseQ = new ArrayBlockingQueue<>(10);
 
+    boolean displayPresent;
     public Client() {
         registerO2AInterface(ClientI.class,this);
+        displayPresent=isDisplayAgentPresent();
     }
 
     protected void setup()
@@ -41,8 +43,8 @@ public class Client extends Agent implements ClientI {
         {
             public void action() {
 
-                ACLMessage msgI = receive();
-                if (msgI != null) {
+                ACLMessage msgI ;
+                while ((msgI=receive()) != null) {
                     try {
                         Object mesg = msgI.getContentObject();
                         if (mesg instanceof CallCenterToClient) {
@@ -50,12 +52,14 @@ public class Client extends Agent implements ClientI {
                             if(isDisplayAgentPresent()) sendStatusToDisplay(startPosition, true, ct.getTimeToPickUp().longValue());
                             System.out.println("Taxi: " + ct.getTaxiName() + "pick me up for " + ct.getTimeToPickUp() + " sec.");
                             responseQ.add("Taxi: " + ct.getTaxiName() + "pick me up for " + ct.getTimeToPickUp() + " sec.");
-                        }
-                    } catch (UnreadableException e) {
+                       }
+                    } catch (Exception e) {
+                        System.err.println(msgI.toString());
                         e.printStackTrace();
                     }
-                    block();
+
                 }
+                block();
             }
         });
 
@@ -125,10 +129,13 @@ public class Client extends Agent implements ClientI {
         CallTaxi ct=new CallTaxi(from, to, ifBabySeat, ifHomePet, ifLargeLuggage, numberOFPassengers, kindOfClient);
         msg.setContentObject(ct);
         send(msg);
-        System.out.println("Asking about picking me up.");
 
-        if(isDisplayAgentPresent()) sendStatusToDisplay(startPosition, false, Long.MAX_VALUE);
-        return responseQ.take();
+        if(displayPresent) {
+            sendStatusToDisplay(startPosition, false, Long.MAX_VALUE);
+        }
+        String resp=responseQ.take();
+        System.out.println("client resp from queue "+resp );
+        return resp;
     }
 
 

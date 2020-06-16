@@ -42,7 +42,7 @@ public class EfficiencyTest {
         }
         ccAgent.createNewAgent("display", "pl.edu.pw.elka.taxiAgents.EfTestDisplay", new Object[0]).start();
         try {
-            Thread.sleep(200);
+            Thread.sleep(600);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -56,11 +56,11 @@ public class EfficiencyTest {
         taxisNames = new String[taxisData.length];
         for (int i = 0; i < taxisData.length; i++) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            taxisNames[i] = " " + i;
+            taxisNames[i] = "t-" + i;
             AgentController dummy = ccAgent.createNewAgent(taxisNames[i], "pl.edu.pw.elka.taxiAgents.TaxiAgent", taxisData[i]);
             // Fire up the agent
             dummy.start();
@@ -69,7 +69,7 @@ public class EfficiencyTest {
 
 
     protected Object[][] getTaxisData(int numTaxis) {
-        Object[][] taxisList = new Object[numTaxis][14];
+        Object[][] taxisList = new Object[numTaxis][];
         for (int i = 0; i < numTaxis; i++) {
             int pos = i * 50;
             taxisList[i] = new Object[]{new Position(0 + pos, 2000), new Position(33+ pos, 33), true, true, "van", 8, true, true, "free", 0.0, 0, 0, 0, 6000};
@@ -84,7 +84,8 @@ public class EfficiencyTest {
         AgentController acClient = ccAgent.createNewAgent("client-"+num, "pl.edu.pw.elka.taxiAgents.Client", new Object[0]);
         // Fire up the agent
         acClient.start();
-        acClient.getO2AInterface(ClientI.class).doQuery(new Position(0+num*50, 2000), new Position(3000, 3000), false, false, false, 1, "normal");
+        acClient.getO2AInterface(ClientI.class).doQuery(new Position(0 + num*50, 2000), new Position(3000, 3000), false, false, false, 1, "normal");
+
         acClient.kill();
     }
 
@@ -125,13 +126,13 @@ public class EfficiencyTest {
 
     public static void main(String[] args) throws StaleProxyException, FileNotFoundException {
             EfficiencyTest et=new EfficiencyTest();
-            int numTaxis=20;
-            int numClients=10;
+            int numTaxis=5;
+            int numClients=5;
             et.setup();
             et.initTaxis(numTaxis);
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
